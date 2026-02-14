@@ -12,748 +12,286 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Wordle — Word Game</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Noto+Sans+Arabic:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #0f0f13;
-  --board: #1a1a24;
-  --cell: #25253a;
-  --cell-border: rgba(255,255,255,0.08);
-  --cell-active: rgba(255,255,255,0.2);
-  --text: #e8e6f0;
-  --text2: rgba(255,255,255,0.5);
-  --accent: #ff6b4a;
-  --accent2: #ffd166;
-  --green: #22c55e;
-  --yellow: #eab308;
-  --gray: #3a3a4a;
-  --key-bg: #3a3a4e;
-  --key-text: #e8e6f0;
-  --border: rgba(255,255,255,0.06);
-  --overlay-bg: rgba(15,15,19,0.88);
-}
-
-[data-theme="light"] {
-  --bg: #f5f1eb;
-  --board: #e8e0d4;
-  --cell: #ffffff;
-  --cell-border: rgba(0,0,0,0.15);
-  --cell-active: rgba(0,0,0,0.3);
-  --text: #1a1a24;
-  --text2: rgba(0,0,0,0.4);
-  --green: #6aaa64;
-  --yellow: #c9b458;
-  --gray: #787c7e;
-  --key-bg: #d3d6da;
-  --key-text: #1a1a24;
-  --border: rgba(0,0,0,0.08);
-  --overlay-bg: rgba(245,241,235,0.92);
-}
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Outfit', sans-serif;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 12px;
-  user-select: none;
-  -webkit-user-select: none;
-  transition: background 0.3s, color 0.3s;
-}
-
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background:
-    radial-gradient(ellipse at 20% 50%, rgba(255,107,74,0.06) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 20%, rgba(255,209,102,0.04) 0%, transparent 50%);
-  pointer-events: none; z-index: 0;
-}
-[data-theme="light"] body::before { background: none; }
-
-.app {
-  position: relative; z-index: 1;
-  display: flex; flex-direction: column; align-items: center;
-  gap: 10px; width: 100%; max-width: 500px;
-  flex: 1;
-}
-
-/* Header */
-.header {
-  display: flex; align-items: center; justify-content: space-between;
-  width: 100%; padding-bottom: 4px;
-  border-bottom: 1px solid var(--border);
-}
-.logo {
-  font-family: 'Space Mono', monospace;
-  font-size: 1.8rem; font-weight: 700;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text; letter-spacing: -1px;
-}
-.header-right { display: flex; gap: 8px; align-items: center; }
-
-.icon-btn {
-  width: 34px; height: 34px; border-radius: 50%;
-  border: 1.5px solid var(--border); background: var(--board);
-  color: var(--text2); display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 0.85rem; transition: all 0.15s; font-family: inherit;
-  text-decoration: none;
-}
-.icon-btn:hover { border-color: var(--accent); color: var(--accent); }
-[data-theme="light"] .icon-btn { border-color: rgba(0,0,0,0.12); color: rgba(0,0,0,0.4); }
-[data-theme="light"] .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-/* Board */
-.board {
-  display: grid;
-  grid-template-rows: repeat(6, 1fr);
-  gap: 6px;
-  flex: 1;
-  max-height: min(400px, 52vh);
-  width: fit-content;
-  margin: 4px auto;
-}
-.row {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
-}
-.tile {
-  width: clamp(48px, 13vw, 62px);
-  height: clamp(48px, 13vw, 62px);
-  border: 2px solid var(--cell-border);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Space Mono', monospace;
-  font-size: clamp(1.3rem, 4.5vw, 1.8rem);
-  font-weight: 700;
-  text-transform: uppercase;
-  background: transparent;
-  color: var(--text);
-  transition: border-color 0.1s;
-}
-.tile.filled { border-color: var(--cell-active); animation: pop 0.1s ease; }
-.tile.reveal { animation: flip 0.5s ease forwards; }
-.tile.correct { --flip-bg: var(--green); --flip-text: #fff; }
-.tile.present { --flip-bg: var(--yellow); --flip-text: #fff; }
-.tile.absent  { --flip-bg: var(--gray);  --flip-text: #fff; }
-
-@keyframes pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
-}
-
-@keyframes flip {
-  0%   { transform: rotateX(0);   background: transparent; }
-  49%  { transform: rotateX(90deg); background: transparent; }
-  50%  { transform: rotateX(90deg); background: var(--flip-bg); color: var(--flip-text); border-color: var(--flip-bg); }
-  100% { transform: rotateX(0);     background: var(--flip-bg); color: var(--flip-text); border-color: var(--flip-bg); }
-}
-
-@keyframes shake {
-  0%,100% { transform: translateX(0); }
-  20%     { transform: translateX(-5px); }
-  40%     { transform: translateX(5px); }
-  60%     { transform: translateX(-5px); }
-  80%     { transform: translateX(5px); }
-}
-
-@keyframes bounce {
-  0%,20%   { transform: translateY(0); }
-  40%      { transform: translateY(-20px); }
-  50%      { transform: translateY(5px); }
-  60%      { transform: translateY(-10px); }
-  80%      { transform: translateY(2px); }
-  100%     { transform: translateY(0); }
-}
-
-/* Keyboard */
-.keyboard {
-  display: flex; flex-direction: column; gap: 6px;
-  width: 100%; max-width: 500px; margin-top: auto;
-}
-.kb-row {
-  display: flex; justify-content: center; gap: 5px;
-}
-.key {
-  height: clamp(44px, 7vh, 56px);
-  min-width: clamp(28px, 7.5vw, 38px);
-  border-radius: 6px;
-  border: none;
-  background: var(--key-bg);
-  color: var(--key-text);
-  font-family: 'Outfit', sans-serif;
-  font-size: clamp(0.72rem, 2vw, 0.88rem);
-  font-weight: 700;
-  text-transform: uppercase;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
-  flex: 1;
-  max-width: 44px;
-}
-.key.wide { min-width: 56px; max-width: 64px; font-size: clamp(0.6rem, 1.8vw, 0.75rem); }
-.key:active { transform: scale(0.93); }
-.key.correct { background: var(--green); color: #fff; }
-.key.present { background: var(--yellow); color: #fff; }
-.key.absent  { background: var(--gray); color: #fff; opacity: 0.6; }
-[data-theme="light"] .key.absent { opacity: 1; color: #fff; }
-
-/* Toast */
-.toast {
-  position: fixed; top: 60px; left: 50%;
-  transform: translateX(-50%) translateY(-10px);
-  background: var(--text); color: var(--bg); padding: 12px 24px;
-  border-radius: 8px; font-weight: 700; font-size: 0.85rem;
-  z-index: 300; opacity: 0; pointer-events: none; transition: all 0.3s;
-}
-.toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* Overlay */
-.overlay {
-  position: fixed; inset: 0; z-index: 100;
-  display: flex; align-items: center; justify-content: center;
-  padding: 20px; background: var(--overlay-bg);
-  backdrop-filter: blur(8px);
-  opacity: 0; pointer-events: none; transition: opacity 0.35s;
-}
-.overlay.on { opacity: 1; pointer-events: auto; }
-.ov-box {
-  background: var(--board); border-radius: 18px; border: 1px solid var(--border);
-  padding: 28px 24px; max-width: 380px; width: 100%;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-  display: flex; flex-direction: column; align-items: center; gap: 14px;
-  text-align: center; animation: ovIn 0.4s cubic-bezier(.34,1.56,.64,1);
-}
-[data-theme="light"] .ov-box { background: #fff; border-color: rgba(0,0,0,0.08); }
-@keyframes ovIn { 0%{transform:translateY(20px)scale(.95);opacity:0} 100%{transform:none;opacity:1} }
-.ov-emoji { font-size: 3rem; }
-.ov-title {
-  font-family: 'Space Mono', monospace; font-size: 1.3rem; font-weight: 700;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-.ov-stats {
-  background: rgba(255,255,255,0.04); border-radius: 10px;
-  padding: 14px 18px; width: 100%;
-  font-family: 'Space Mono', monospace; font-size: 0.85rem;
-  line-height: 2; color: var(--text2);
-}
-[data-theme="light"] .ov-stats { background: rgba(0,0,0,0.04); }
-.ov-stats strong { color: var(--accent2); }
-.ov-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-.ov-btn {
-  font-family: 'Outfit', sans-serif; font-size: 0.8rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 1px;
-  padding: 10px 24px; border: none; border-radius: 10px;
-  cursor: pointer; transition: all 0.2s;
-}
-.ov-btn.primary { background: var(--accent); color: #fff; }
-.ov-btn.secondary { background: var(--board); color: var(--text); border: 1.5px solid var(--border); }
-[data-theme="light"] .ov-btn.secondary { background: #f5f1eb; }
-.ov-btn:hover { filter: brightness(1.15); transform: scale(1.03); }
-
-/* Help modal */
-.modal-overlay {
-  position: fixed; inset: 0; background: var(--overlay-bg);
-  backdrop-filter: blur(8px); z-index: 200;
-  display: flex; align-items: center; justify-content: center; padding: 20px;
-  opacity: 0; pointer-events: none; transition: opacity 0.3s;
-}
-.modal-overlay.on { opacity: 1; pointer-events: auto; }
-.modal-box {
-  background: var(--board); border: 1px solid var(--border); border-radius: 18px;
-  padding: 28px 24px; max-width: 400px; width: 100%;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  animation: ovIn 0.35s cubic-bezier(.34,1.56,.64,1);
-  max-height: 85dvh; overflow-y: auto;
-}
-[data-theme="light"] .modal-box { background: #fff; border-color: rgba(0,0,0,0.08); }
-.modal-box h2 {
-  font-family: 'Space Mono', monospace; font-size: 1.2rem; font-weight: 700;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  margin-bottom: 18px; text-align: center;
-}
-[data-theme="light"] .modal-box h2 { -webkit-text-fill-color: initial; background: none; color: var(--accent); }
-.how-step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
-.how-num {
-  min-width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 0.72rem; flex-shrink: 0;
-}
-.how-text { font-size: 0.82rem; line-height: 1.6; color: var(--text2); }
-.how-text strong { color: var(--text); }
-.example-tiles { display: flex; gap: 5px; margin: 8px 0; }
-.ex-tile {
-  width: 34px; height: 34px; border-radius: 5px; display: flex;
-  align-items: center; justify-content: center;
-  font-family: 'Space Mono', monospace; font-weight: 700; font-size: 0.9rem; color: #fff;
-}
-.modal-close {
-  display: block; margin: 16px auto 0; font-family: 'Outfit', sans-serif;
-  font-size: 0.85rem; font-weight: 700; padding: 10px 32px; border-radius: 10px;
-  border: none; background: var(--accent); color: #fff; cursor: pointer; transition: all 0.2s;
-}
-.modal-close:hover { filter: brightness(1.15); }
-
-/* Confetti */
-.conf { position: fixed; inset: 0; pointer-events: none; z-index: 99; overflow: hidden; }
-.conf-p {
-  position: absolute; width: 10px; height: 10px; top: -10px;
-  animation: cFall linear forwards;
-}
-@keyframes cFall { 0%{transform:translateY(0)rotate(0);opacity:1} 100%{transform:translateY(110vh)rotate(720deg);opacity:0} }
-
-@media (max-width: 360px) {
-  .tile { width: 44px; height: 44px; font-size: 1.1rem; }
-  .key { height: 40px; min-width: 24px; font-size: 0.65rem; }
-}
+:root{--bg:#0f0f13;--board:#1a1a24;--cell:#25253a;--cell-border:rgba(255,255,255,0.08);--cell-active:rgba(255,255,255,0.2);--text:#e8e6f0;--text2:rgba(255,255,255,0.5);--accent:#ff6b4a;--accent2:#ffd166;--green:#22c55e;--yellow:#eab308;--gray:#3a3a4a;--key-bg:#3a3a4e;--key-text:#e8e6f0;--border:rgba(255,255,255,0.06);--overlay-bg:rgba(15,15,19,0.88)}
+[data-theme="light"]{--bg:#f5f1eb;--board:#e8e0d4;--cell:#fff;--cell-border:rgba(0,0,0,0.15);--cell-active:rgba(0,0,0,0.3);--text:#1a1a24;--text2:rgba(0,0,0,0.4);--green:#6aaa64;--yellow:#c9b458;--gray:#787c7e;--key-bg:#d3d6da;--key-text:#1a1a24;--border:rgba(0,0,0,0.08);--overlay-bg:rgba(245,241,235,0.92)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:12px;user-select:none;-webkit-user-select:none;transition:background .3s,color .3s}
+body.ar{font-family:'Noto Sans Arabic','Outfit',sans-serif}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(255,107,74,.06) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(255,209,102,.04) 0%,transparent 50%);pointer-events:none;z-index:0}
+[data-theme="light"] body::before{background:none}
+.app{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:500px;flex:1}
+.header{display:flex;align-items:center;justify-content:space-between;width:100%;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.logo{font-family:'Space Mono',monospace;font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-1px}
+body.ar .logo{font-family:'Noto Sans Arabic',sans-serif;letter-spacing:0;font-size:1.6rem}
+.header-right{display:flex;gap:8px;align-items:center}
+.icon-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:var(--board);color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.85rem;transition:all .15s;font-family:inherit;text-decoration:none}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+[data-theme="light"] .icon-btn{border-color:rgba(0,0,0,.12);color:rgba(0,0,0,.4)}
+[data-theme="light"] .icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+.lang-btn{font-weight:700;font-size:.75rem;font-family:'Noto Sans Arabic','Outfit',sans-serif}
+.board{display:grid;grid-template-rows:repeat(6,1fr);gap:6px;flex:1;max-height:min(400px,50vh);width:fit-content;margin:4px auto}
+.row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+body.ar .row{direction:ltr}
+.tile{width:clamp(48px,13vw,62px);height:clamp(48px,13vw,62px);border:2px solid var(--cell-border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:clamp(1.3rem,4.5vw,1.8rem);font-weight:700;text-transform:uppercase;background:transparent;color:var(--text);transition:border-color .1s}
+body.ar .tile{font-family:'Noto Sans Arabic',sans-serif;font-size:clamp(1.2rem,4vw,1.6rem);text-transform:none}
+.tile.filled{border-color:var(--cell-active);animation:pop .1s ease}
+.tile.reveal{animation:flip .5s ease forwards}
+.tile.correct{--flip-bg:var(--green);--flip-text:#fff}
+.tile.present{--flip-bg:var(--yellow);--flip-text:#fff}
+.tile.absent{--flip-bg:var(--gray);--flip-text:#fff}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes flip{0%{transform:rotateX(0);background:transparent}49%{transform:rotateX(90deg);background:transparent}50%{transform:rotateX(90deg);background:var(--flip-bg);color:var(--flip-text);border-color:var(--flip-bg)}100%{transform:rotateX(0);background:var(--flip-bg);color:var(--flip-text);border-color:var(--flip-bg)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+@keyframes bounce{0%,20%{transform:translateY(0)}40%{transform:translateY(-20px)}50%{transform:translateY(5px)}60%{transform:translateY(-10px)}80%{transform:translateY(2px)}100%{transform:translateY(0)}}
+.keyboard{display:flex;flex-direction:column;gap:6px;width:100%;max-width:500px;margin-top:auto}
+.kb-row{display:flex;justify-content:center;gap:4px}
+body.ar .kb-row{direction:ltr}
+.key{height:clamp(44px,7vh,56px);min-width:clamp(26px,6.8vw,36px);border-radius:6px;border:none;background:var(--key-bg);color:var(--key-text);font-family:'Outfit',sans-serif;font-size:clamp(.7rem,2vw,.88rem);font-weight:700;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex:1;max-width:42px}
+body.ar .key{font-family:'Noto Sans Arabic',sans-serif;font-size:clamp(.8rem,2.2vw,1rem);text-transform:none;min-width:clamp(22px,5.5vw,32px);max-width:36px}
+.key.wide{min-width:52px;max-width:62px;font-size:clamp(.6rem,1.8vw,.75rem)}
+body.ar .key.wide{min-width:44px;max-width:54px}
+.key:active{transform:scale(.93)}
+.key.correct{background:var(--green);color:#fff}
+.key.present{background:var(--yellow);color:#fff}
+.key.absent{background:var(--gray);color:#fff;opacity:.6}
+[data-theme="light"] .key.absent{opacity:1;color:#fff}
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-10px);background:var(--text);color:var(--bg);padding:12px 24px;border-radius:8px;font-weight:700;font-size:.85rem;z-index:300;opacity:0;pointer-events:none;transition:all .3s}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--overlay-bg);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .35s}
+.overlay.on{opacity:1;pointer-events:auto}
+.ov-box{background:var(--board);border-radius:18px;border:1px solid var(--border);padding:28px 24px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;animation:ovIn .4s cubic-bezier(.34,1.56,.64,1)}
+[data-theme="light"] .ov-box{background:#fff;border-color:rgba(0,0,0,.08)}
+@keyframes ovIn{0%{transform:translateY(20px)scale(.95);opacity:0}100%{transform:none;opacity:1}}
+.ov-emoji{font-size:3rem}
+.ov-title{font-family:'Space Mono',monospace;font-size:1.3rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+body.ar .ov-title{font-family:'Noto Sans Arabic',sans-serif}
+.ov-stats{background:rgba(255,255,255,.04);border-radius:10px;padding:14px 18px;width:100%;font-family:'Space Mono',monospace;font-size:.85rem;line-height:2;color:var(--text2)}
+body.ar .ov-stats{font-family:'Noto Sans Arabic',sans-serif;direction:rtl}
+[data-theme="light"] .ov-stats{background:rgba(0,0,0,.04)}
+.ov-stats strong{color:var(--accent2)}
+.ov-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.ov-btn{font-family:'Outfit',sans-serif;font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:10px 24px;border:none;border-radius:10px;cursor:pointer;transition:all .2s}
+body.ar .ov-btn{font-family:'Noto Sans Arabic',sans-serif;letter-spacing:0}
+.ov-btn.primary{background:var(--accent);color:#fff}
+.ov-btn.secondary{background:var(--board);color:var(--text);border:1.5px solid var(--border)}
+[data-theme="light"] .ov-btn.secondary{background:#f5f1eb}
+.ov-btn:hover{filter:brightness(1.15);transform:scale(1.03)}
+.modal-overlay{position:fixed;inset:0;background:var(--overlay-bg);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.on{opacity:1;pointer-events:auto}
+.modal-box{background:var(--board);border:1px solid var(--border);border-radius:18px;padding:28px 24px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:ovIn .35s cubic-bezier(.34,1.56,.64,1);max-height:85dvh;overflow-y:auto}
+body.ar .modal-box{direction:rtl}
+[data-theme="light"] .modal-box{background:#fff;border-color:rgba(0,0,0,.08)}
+.modal-box h2{font-family:'Space Mono',monospace;font-size:1.2rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:18px;text-align:center}
+body.ar .modal-box h2{font-family:'Noto Sans Arabic',sans-serif}
+[data-theme="light"] .modal-box h2{-webkit-text-fill-color:initial;background:none;color:var(--accent)}
+.how-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+.how-num{min-width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.72rem;flex-shrink:0}
+.how-text{font-size:.82rem;line-height:1.6;color:var(--text2)}
+.how-text strong{color:var(--text)}
+.example-tiles{display:flex;gap:5px;margin:8px 0}
+body.ar .example-tiles{direction:ltr}
+.ex-tile{width:34px;height:34px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-weight:700;font-size:.9rem;color:#fff}
+body.ar .ex-tile{font-family:'Noto Sans Arabic',sans-serif}
+.modal-close{display:block;margin:16px auto 0;font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:700;padding:10px 32px;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:all .2s}
+.modal-close:hover{filter:brightness(1.15)}
+.conf{position:fixed;inset:0;pointer-events:none;z-index:99;overflow:hidden}
+.conf-p{position:absolute;width:10px;height:10px;top:-10px;animation:cFall linear forwards}
+@keyframes cFall{0%{transform:translateY(0)rotate(0);opacity:1}100%{transform:translateY(110vh)rotate(720deg);opacity:0}}
+@media(max-width:360px){.tile{width:44px;height:44px;font-size:1.1rem}.key{height:40px;min-width:22px;font-size:.65rem}}
 </style>
 </head>
 <body>
-
 <div class="app">
   <div class="header">
-    <div class="logo">Wordle</div>
+    <div class="logo" id="logoText">Wordle</div>
     <div class="header-right">
+      <button class="icon-btn lang-btn" id="langBtn" title="العربية">ع</button>
       <button class="icon-btn" id="helpBtn" title="How to Play">?</button>
       <button class="icon-btn" id="themeBtn" title="Toggle theme">◐</button>
       <a class="icon-btn" href="index.html" title="Home">⌂</a>
     </div>
   </div>
-
   <div class="board" id="board"></div>
-
-  <div class="keyboard" id="keyboard">
-    <div class="kb-row" data-keys="q,w,e,r,t,y,u,i,o,p"></div>
-    <div class="kb-row" data-keys="a,s,d,f,g,h,j,k,l"></div>
-    <div class="kb-row" data-keys="Enter,z,x,c,v,b,n,m,Backspace"></div>
-  </div>
+  <div class="keyboard" id="keyboard"></div>
 </div>
-
-<!-- Win/Lose overlay -->
-<div class="overlay" id="resultOv">
-  <div class="ov-box">
-    <div class="ov-emoji" id="resEmoji">🎉</div>
-    <div class="ov-title" id="resTitle">Brilliant!</div>
-    <div class="ov-stats" id="resStats"></div>
-    <div class="ov-btns">
-      <button class="ov-btn secondary" id="shareBtn">📋 Share</button>
-      <button class="ov-btn primary" id="playAgainBtn">▶ Play Again</button>
-    </div>
+<div class="overlay" id="resultOv"><div class="ov-box">
+  <div class="ov-emoji" id="resEmoji">🎉</div>
+  <div class="ov-title" id="resTitle">Brilliant!</div>
+  <div class="ov-stats" id="resStats"></div>
+  <div class="ov-btns">
+    <button class="ov-btn secondary" id="shareBtn">📋 <span data-i18n="share">Share</span></button>
+    <button class="ov-btn primary" id="playAgainBtn">▶ <span data-i18n="playAgain">Play Again</span></button>
   </div>
-</div>
-
-<!-- How to Play -->
-<div class="modal-overlay" id="helpModal">
-  <div class="modal-box">
-    <h2>How to Play</h2>
-    <div class="how-step"><div class="how-num">1</div><div class="how-text"><strong>Guess the word in 6 tries.</strong> Each guess must be a valid 5-letter word. Press Enter to submit.</div></div>
-    <div class="how-step"><div class="how-num">2</div><div class="how-text">After each guess, the tiles change color to show how close you are:
-      <div class="example-tiles">
-        <div class="ex-tile" style="background:var(--green)">W</div>
-        <div class="ex-tile" style="background:var(--gray)">O</div>
-        <div class="ex-tile" style="background:var(--gray)">R</div>
-        <div class="ex-tile" style="background:var(--gray)">D</div>
-        <div class="ex-tile" style="background:var(--gray)">S</div>
-      </div>
-      <strong style="color:var(--green)">Green</strong> = correct letter, correct spot.
-    </div></div>
-    <div class="how-step"><div class="how-num">3</div><div class="how-text">
-      <div class="example-tiles">
-        <div class="ex-tile" style="background:var(--gray)">L</div>
-        <div class="ex-tile" style="background:var(--yellow)">I</div>
-        <div class="ex-tile" style="background:var(--gray)">G</div>
-        <div class="ex-tile" style="background:var(--gray)">H</div>
-        <div class="ex-tile" style="background:var(--gray)">T</div>
-      </div>
-      <strong style="color:var(--yellow)">Yellow</strong> = correct letter, wrong spot.
-    </div></div>
-    <div class="how-step"><div class="how-num">4</div><div class="how-text">
-      <div class="example-tiles">
-        <div class="ex-tile" style="background:var(--gray)">F</div>
-        <div class="ex-tile" style="background:var(--gray)">L</div>
-        <div class="ex-tile" style="background:var(--gray)">A</div>
-        <div class="ex-tile" style="background:var(--gray)">M</div>
-        <div class="ex-tile" style="background:var(--gray)">E</div>
-      </div>
-      <strong style="color:var(--gray)">Gray</strong> = letter not in the word.
-    </div></div>
-    <button class="modal-close" id="helpClose">Got it!</button>
-  </div>
-</div>
-
-<!-- Toast -->
+</div></div>
+<div class="modal-overlay" id="helpModal"><div class="modal-box" id="helpContent"></div></div>
 <div class="toast" id="toast"></div>
-<!-- Confetti -->
 <div class="conf" id="conf"></div>
-
 <script>
 (()=>{
+const i18n={
+  en:{title:'Wordle',notEnough:'Not enough letters',notValid:'Not in word list',share:'Share',playAgain:'Play Again',copied:'Copied to clipboard!',wordWas:'The word was',solvedIn:'Solved in',guesses:'guesses',win:['Genius!','Magnificent!','Impressive!','Splendid!','Great!','Phew!'],lose:'Better luck next time',helpTitle:'How to Play',gotIt:'Got it!',
+    helpSteps:['<strong>Guess the word in 6 tries.</strong> Each guess must be a valid 5-letter word. Press Enter to submit.','After each guess, tiles change color:<div class="example-tiles"><div class="ex-tile" style="background:var(--green)">W</div><div class="ex-tile" style="background:var(--gray)">O</div><div class="ex-tile" style="background:var(--gray)">R</div><div class="ex-tile" style="background:var(--gray)">D</div><div class="ex-tile" style="background:var(--gray)">S</div></div><strong style="color:var(--green)">Green</strong> = correct letter, correct spot.','<div class="example-tiles"><div class="ex-tile" style="background:var(--gray)">L</div><div class="ex-tile" style="background:var(--yellow)">I</div><div class="ex-tile" style="background:var(--gray)">G</div><div class="ex-tile" style="background:var(--gray)">H</div><div class="ex-tile" style="background:var(--gray)">T</div></div><strong style="color:var(--yellow)">Yellow</strong> = correct letter, wrong spot.','<div class="example-tiles"><div class="ex-tile" style="background:var(--gray)">F</div><div class="ex-tile" style="background:var(--gray)">L</div><div class="ex-tile" style="background:var(--gray)">A</div><div class="ex-tile" style="background:var(--gray)">M</div><div class="ex-tile" style="background:var(--gray)">E</div></div><strong style="color:var(--gray)">Gray</strong> = letter not in the word.']},
+  ar:{title:'وُردل',notEnough:'أحرف غير كافية',notValid:'كلمة غير موجودة',share:'مشاركة',playAgain:'لعب مجدداً',copied:'تم النسخ!',wordWas:'الكلمة كانت',solvedIn:'تم الحل في',guesses:'محاولات',win:['عبقري!','رائع!','مذهل!','ممتاز!','جيد!','بالكاد!'],lose:'حظاً أوفر المرة القادمة',helpTitle:'كيف تلعب',gotIt:'فهمت!',
+    helpSteps:['<strong>خمّن الكلمة في ٦ محاولات.</strong> كل تخمين يجب أن يكون كلمة عربية من ٥ أحرف. اضغط إدخال للتأكيد.','بعد كل تخمين تتغير ألوان المربعات:<div class="example-tiles"><div class="ex-tile" style="background:var(--green)">ك</div><div class="ex-tile" style="background:var(--gray)">ل</div><div class="ex-tile" style="background:var(--gray)">م</div><div class="ex-tile" style="background:var(--gray)">ا</div><div class="ex-tile" style="background:var(--gray)">ت</div></div><strong style="color:var(--green)">أخضر</strong> = حرف صحيح في المكان الصحيح.','<div class="example-tiles"><div class="ex-tile" style="background:var(--gray)">ع</div><div class="ex-tile" style="background:var(--yellow)">ر</div><div class="ex-tile" style="background:var(--gray)">ب</div><div class="ex-tile" style="background:var(--gray)">ي</div><div class="ex-tile" style="background:var(--gray)">ة</div></div><strong style="color:var(--yellow)">أصفر</strong> = حرف صحيح في مكان خاطئ.','<div class="example-tiles"><div class="ex-tile" style="background:var(--gray)">ن</div><div class="ex-tile" style="background:var(--gray)">ه</div><div class="ex-tile" style="background:var(--gray)">ا</div><div class="ex-tile" style="background:var(--gray)">ر</div><div class="ex-tile" style="background:var(--gray)">ك</div></div><strong style="color:var(--gray)">رمادي</strong> = الحرف غير موجود في الكلمة.']}
+};
 
-// ===== WORD LIST =====
-const WORDS = [
-  "about","above","abuse","actor","acute","admit","adopt","adult","after","again","agent","agree","ahead","alarm","album",
-  "alert","alien","align","alive","alley","allow","alone","along","alter","among","angel","anger","angle","angry","anime",
-  "ankle","apart","apple","apply","arena","argue","arise","armor","array","arrow","aside","asset","atlas","avoid","awake",
-  "award","aware","badge","badly","basic","basin","basis","batch","beach","beard","beast","begin","being","below","bench",
-  "berry","bike","birth","black","blade","blame","blank","blast","blaze","bleed","blend","bless","blind","block","blood",
-  "bloom","blown","blues","blunt","board","boast","bonus","boost","bound","brain","brand","brave","bread","break","breed",
-  "brick","bride","brief","bring","broad","brook","brown","brush","buddy","build","bunch","burst","buyer","cable","candy",
-  "cargo","carry","catch","cause","cease","chain","chair","chalk","chant","chaos","charm","chart","chase","cheap","check",
-  "cheek","cheer","chess","chest","chief","child","chill","china","chord","chunk","civic","civil","claim","clash","class",
-  "clean","clear","clerk","click","cliff","climb","cling","clock","clone","close","cloth","cloud","coach","coast","color",
-  "comet","comic","coral","could","count","court","cover","crack","craft","crane","crash","crazy","cream","creek","crime",
-  "crown","cruel","crush","curve","cycle","daily","dance","debug","decay","delay","delta","dense","depth","derby","devil",
-  "diary","dirty","dodge","doing","donor","doubt","dozen","draft","drain","drake","drama","drank","drape","drawn","dread",
-  "dream","dress","dried","drift","drink","drive","drone","drove","drugs","drunk","dryer","dying","eager","eagle","early",
-  "earth","eight","elder","elect","elite","email","ember","empty","enemy","enjoy","enter","equal","equip","erase","error",
-  "essay","ethos","event","every","exact","exile","exist","extra","fable","facet","faith","false","fancy","fatal","fault",
-  "feast","fence","ferry","fewer","fiber","field","fifth","fifty","fight","final","first","flame","flash","flask","fleet",
-  "flesh","float","flood","floor","flora","flour","fluid","flunk","flush","flute","focus","force","forge","forth","forum",
-  "found","frame","frank","fraud","fresh","front","frost","fruit","fully","funny","gamma","genre","ghost","giant","given",
-  "glad","glass","globe","gloom","glory","glove","going","grace","grade","grain","grand","grant","graph","grasp","grass",
-  "grave","great","green","greet","grief","grind","grip","gross","group","grove","grown","guard","guess","guest","guide",
-  "guilt","habit","happy","harsh","haste","haunt","haven","heart","heavy","hence","herbs","honey","honor","horse","hotel",
-  "house","human","humor","hurry","hyper","ideal","image","imply","inbox","index","indie","inner","input","inter","issue",
-  "ivory","jewel","joint","joker","judge","juice","karma","knack","kneel","knife","knock","known","label","labor","large",
-  "laser","later","laugh","layer","learn","lease","leave","legal","lemon","level","lever","light","limit","linen","liver",
-  "lobby","local","lodge","logic","login","loose","lover","lower","loyal","lucky","lunar","lunch","lying","magic","major",
-  "maker","manor","maple","march","match","mayor","media","mercy","merge","merit","metal","meter","might","minor","minus",
-  "mixed","model","money","month","moral","mount","mouse","mouth","moved","movie","muddy","music","mysql","naive","nasty",
-  "naval","nerve","never","newly","night","noble","noise","north","noted","novel","nurse","occur","ocean","offer","often",
-  "olive","opera","orbit","order","organ","other","outer","owned","owner","oxide","ozone","paint","panel","panic","paper",
-  "party","pasta","paste","patch","pause","peace","pearl","penny","phase","phone","photo","piano","piece","pilot","pinch",
-  "pitch","pixel","pizza","place","plain","plane","plant","plate","plaza","plead","pluck","plumb","plume","plump","plunge",
-  "point","polar","popup","posed","power","press","price","pride","prime","print","prior","prize","probe","prone","proof",
-  "proud","prove","proxy","psalm","pulse","punch","pupil","purse","push","queen","quest","queue","quick","quiet","quota",
-  "quote","radar","radio","raise","rally","ranch","range","rapid","ratio","reach","ready","realm","rebel","refer","reign",
-  "relax","reply","rider","ridge","rifle","right","rigid","risky","rival","river","robin","robot","rocky","roman","roost",
-  "rouge","rough","round","route","royal","rugby","ruler","rumor","rural","sadly","saint","salad","sauce","scale","scare",
-  "scene","scope","score","scout","scrap","sense","serve","setup","seven","shade","shake","shall","shame","shape","share",
-  "shark","sharp","sheep","sheer","sheet","shelf","shell","shift","shine","shirt","shock","shoot","shore","short","shout",
-  "sight","sigma","silly","since","sixth","sixty","sized","skill","skull","slate","slave","sleep","slice","slide","slope",
-  "small","smart","smell","smile","smoke","snake","solar","solid","solve","sorry","south","space","spare","spark","speak",
-  "spear","speed","spell","spend","spent","spice","spine","split","spoke","sport","spray","squad","stack","staff","stage",
-  "stain","stair","stake","stale","stall","stamp","stand","stark","start","state","stays","steal","steam","steel","steep",
-  "steer","stick","stiff","still","stock","stone","stood","store","storm","story","stove","strap","straw","stray","strip",
-  "stuck","study","stuff","style","sugar","suite","sunny","super","surge","swamp","swear","sweat","sweep","sweet","swept",
-  "swift","swing","sword","syrup","table","taste","teach","teams","teeth","tempo","tense","terms","theft","their","theme",
-  "there","these","thick","thing","think","third","those","three","threw","throw","thumb","tiger","tight","timer","tired",
-  "title","today","token","total","touch","tough","towel","tower","toxic","trace","track","trade","trail","train","trait",
-  "trash","trend","trial","tribe","trick","tried","troop","truck","truly","trunk","trust","truth","tumor","tuner","twice",
-  "twist","tying","ultra","under","unify","union","unite","unity","until","upper","upset","urban","usage","usual","utter",
-  "valid","value","valve","vault","venue","verse","vigor","vinyl","viral","virus","visit","vital","vivid","vocal","voice",
-  "voter","vowel","wages","waste","watch","water","weary","weave","wedge","weigh","weird","whale","wheat","wheel","where",
-  "which","while","white","whole","whose","wider","widow","width","woman","woods","world","worry","worse","worst","worth",
-  "would","wound","wrath","write","wrong","wrote","yacht","yearn","yield","young","yours","youth","zebra"
-];
+const EN_WORDS=["about","above","abuse","actor","acute","admit","adopt","adult","after","again","agent","agree","ahead","alarm","album","alert","alien","align","alive","alley","allow","alone","along","alter","among","angel","anger","angle","angry","ankle","apart","apple","apply","arena","argue","arise","armor","array","arrow","aside","asset","atlas","avoid","awake","award","aware","badge","badly","basic","basin","basis","batch","beach","beard","beast","begin","being","below","bench","berry","birth","black","blade","blame","blank","blast","blaze","bleed","blend","bless","blind","block","blood","bloom","blown","blues","blunt","board","boast","bonus","boost","bound","brain","brand","brave","bread","break","breed","brick","bride","brief","bring","broad","brook","brown","brush","buddy","build","bunch","burst","buyer","cable","candy","cargo","carry","catch","cause","cease","chain","chair","chalk","chaos","charm","chart","chase","cheap","check","cheek","cheer","chess","chest","chief","child","chill","china","chord","chunk","civic","civil","claim","clash","class","clean","clear","clerk","click","cliff","climb","cling","clock","clone","close","cloth","cloud","coach","coast","color","comet","comic","coral","could","count","court","cover","crack","craft","crane","crash","crazy","cream","creek","crime","crown","cruel","crush","curve","cycle","daily","dance","debug","decay","delay","delta","dense","depth","derby","devil","diary","dirty","dodge","doing","donor","doubt","dozen","draft","drain","drama","drank","drawn","dread","dream","dress","dried","drift","drink","drive","drone","drove","drunk","dying","eager","eagle","early","earth","eight","elder","elect","elite","email","ember","empty","enemy","enjoy","enter","equal","equip","erase","error","essay","event","every","exact","exile","exist","extra","fable","faith","false","fancy","fatal","fault","feast","fence","fewer","fiber","field","fifth","fifty","fight","final","first","flame","flash","fleet","flesh","float","flood","floor","flora","flour","fluid","flush","flute","focus","force","forge","forth","forum","found","frame","fraud","fresh","front","frost","fruit","fully","funny","genre","ghost","giant","given","glass","globe","gloom","glory","glove","going","grace","grade","grain","grand","grant","graph","grasp","grass","grave","great","green","greet","grief","grind","gross","group","grove","grown","guard","guess","guest","guide","guilt","habit","happy","harsh","haunt","haven","heart","heavy","hence","honey","honor","horse","hotel","house","human","humor","hurry","ideal","image","imply","index","inner","input","issue","ivory","jewel","joint","judge","juice","karma","knife","knock","known","label","labor","large","laser","later","laugh","layer","learn","lease","leave","legal","lemon","level","lever","light","limit","liver","lobby","local","lodge","logic","loose","lover","lower","loyal","lucky","lunar","lunch","lying","magic","major","maker","manor","maple","march","match","mayor","media","mercy","merge","merit","metal","meter","might","minor","minus","mixed","model","money","month","moral","mount","mouse","mouth","moved","movie","music","naive","nasty","naval","nerve","never","newly","night","noble","noise","north","noted","novel","nurse","occur","ocean","offer","often","olive","opera","orbit","order","organ","other","outer","owned","owner","paint","panel","panic","paper","party","pasta","patch","pause","peace","pearl","penny","phase","phone","photo","piano","piece","pilot","pitch","pixel","pizza","place","plain","plane","plant","plate","plaza","point","polar","power","press","price","pride","prime","print","prior","prize","probe","prone","proof","proud","prove","proxy","pulse","punch","pupil","queen","quest","queue","quick","quiet","quota","quote","radar","radio","raise","rally","ranch","range","rapid","ratio","reach","ready","realm","rebel","refer","reign","relax","reply","rider","ridge","rifle","right","rigid","risky","rival","river","robot","rocky","rough","round","route","royal","rugby","ruler","rumor","rural","sadly","saint","salad","sauce","scale","scare","scene","scope","score","scout","sense","serve","setup","seven","shade","shake","shall","shame","shape","share","shark","sharp","sheep","sheer","sheet","shelf","shell","shift","shine","shirt","shock","shoot","shore","short","shout","sight","silly","since","sixth","sixty","sized","skill","skull","slate","sleep","slice","slide","slope","small","smart","smell","smile","smoke","snake","solar","solid","solve","sorry","south","space","spare","spark","speak","speed","spell","spend","spent","spice","spine","split","spoke","sport","spray","squad","stack","staff","stage","stain","stake","stall","stamp","stand","stark","start","state","steal","steam","steel","steep","steer","stick","stiff","still","stock","stone","stood","store","storm","story","stove","strap","strip","stuck","study","stuff","style","sugar","suite","sunny","super","surge","swamp","swear","sweat","sweep","sweet","swept","swift","swing","sword","table","taste","teach","teeth","tempo","tense","terms","theft","their","theme","there","these","thick","thing","think","third","those","three","threw","throw","thumb","tiger","tight","timer","tired","title","today","token","total","touch","tough","towel","tower","toxic","trace","track","trade","trail","train","trait","trash","trend","trial","tribe","trick","tried","troop","truck","truly","trunk","trust","truth","tumor","twice","twist","ultra","under","unify","union","unite","unity","until","upper","upset","urban","usage","usual","valid","value","valve","vault","venue","verse","vigor","vinyl","viral","virus","visit","vital","vivid","vocal","voice","voter","wages","waste","watch","water","weary","weave","wedge","weigh","weird","whale","wheat","wheel","where","which","while","white","whole","whose","wider","width","woman","woods","world","worry","worse","worst","worth","would","wound","wrath","write","wrong","wrote","yacht","yield","young","yours","youth","zebra"];
 
-const VALID_EXTRA = new Set([
-  "adieu","aisle","audio","azure","bathe","blimp","bloke","blurt","braid","brisk","broth","budge","cabal","cache",
-  "cameo","canoe","caulk","chafe","champ","choke","chomp","cinch","circa","clamp","clang","clasp","caulk","couch",
-  "coupe","crave","crawl","creed","creep","crisp","crowd","crude","crypt","decal","decor","decoy","delve","depot",
-  "deter","digit","ditto","dodge","dough","drool","drool","drown","dwell","edict","eject","elbow","ember","emote",
-  "enact","endow","ensue","envoy","epoch","evade","evoke","exert","expel","extol","feast","feign","fetch","fiend",
-  "filth","finch","fjord","flair","flare","flock","foray","forge","forte","frail","frank","freak","froze","gamma",
-  "gauze","giddy","girth","gleam","glint","gloat","gloss","gouge","gourd","graft","grasp","graze","grimy","gripe",
-  "grope","growl","gruel","grump","guile","guise","gulch","gumbo","guppy","gusty","haven","heave","hedge","heist",
-  "hitch","hoist","homer","hover","humid","hutch","hyena","icing","idyll","impel","inane","inept","infer","ingot",
-  "inter","irate","jaunt","jazzy","jiffy","joust","jumbo","kayak","kebab","kinky","knead","knelt","lance","lapse",
-  "latch","ledge","leech","lemur","lilac","limbo","lofty","lucid","lymph","macho","mange","marsh","mason","maven",
-  "melee","midst","mimic","mirth","modem","mogul","moist","moose","morph","motto","mourn","mulch","mural","musty",
-  "nanny","nasal","needy","nexus","nifty","ninja","niece","notch","nudge","outdo","ovary","oxide","patio","peach",
-  "perch","peril","perky","picky","pilot","pious","plaid","pleat","plier","pluck","plumb","poach","poker","polyp",
-  "pouch","prank","prawn","privy","prude","prune","qualm","quark","quasi","query","quirk","quota","rabbi","rainy",
-  "ramen","raven","rebus","recap","relic","repay","repel","resin","retro","revel","rhino","ridge","rinse","rivet",
-  "roast","rogue","rouge","rowdy","rummy","rupee","rusty","saint","savor","scald","scalp","scant","scone","scoop",
-  "scorn","scour","seize","sever","shack","shady","shawl","sheik","shire","shove","shrub","shrug","siege","siren",
-  "skate","skimp","skirt","skulk","skunk","slang","slant","sleek","sleet","slime","sling","sloth","slump","smear",
-  "smelt","smirk","snail","snare","sneer","snore","snout","soapy","somber","sonic","spade","spank","spasm","spawn",
-  "speck","spill","spite","spoof","spook","spool","spoon","spore","spout","sprig","squat","squid","stab","stag",
-  "staid","stale","stank","stash","stead","steed","steep","stiff","sting","stink","stoic","stoke","stomp","stoop",
-  "stork","stout","stray","strut","stump","stung","stunk","suave","swarm","swear","swift","swine","swirl","swoon",
-  "tabby","tacit","talon","tangy","taunt","tepid","thief","thigh","thorn","tiara","tiger","timid","topaz","torso",
-  "trout","tulip","tunic","twang","tweed","ulcer","uncut","undue","unfit","untie","usher","valet","vapor","vegan",
-  "vigor","viper","visor","vivid","vodka","voila","vying","wacky","waltz","whack","whiff","whirl","widow","wield",
-  "windy","wince","witty","woken","woozy","wreck","wrist","yield","zesty","zippy","llama","otter","badge","blown"
-]);
+const EN_EXTRA=new Set(["adieu","aisle","audio","azure","bathe","braid","brisk","broth","budge","cache","cameo","canoe","chafe","champ","choke","cinch","clamp","clang","clasp","couch","coupe","crave","crawl","creed","creep","crisp","crowd","crude","crypt","decor","decoy","delve","depot","deter","ditto","dough","drool","drown","dwell","edict","eject","elbow","emote","enact","endow","ensue","envoy","epoch","evade","evoke","exert","expel","fetch","fiend","filth","finch","fjord","flair","flare","flock","foray","forte","frail","frank","freak","froze","gauze","giddy","girth","gleam","glint","gloat","gloss","gouge","gourd","graft","graze","grimy","gripe","grope","growl","gruel","guile","guise","gulch","gusty","heave","hedge","heist","hitch","hoist","hover","humid","hyena","idyll","impel","inane","inept","infer","ingot","irate","jaunt","jazzy","jiffy","joust","jumbo","kayak","kebab","knead","knelt","lance","lapse","latch","ledge","leech","lemur","lilac","limbo","lofty","lucid","lymph","macho","marsh","mason","maven","melee","midst","mimic","mirth","modem","mogul","moist","moose","morph","motto","mourn","mulch","mural","musty","nanny","nasal","needy","nexus","nifty","ninja","niece","notch","nudge","outdo","oxide","patio","peach","perch","peril","perky","picky","pious","plaid","pleat","pluck","plumb","poach","poker","pouch","prank","prawn","privy","prude","prune","qualm","quasi","query","quirk","rabbi","rainy","ramen","raven","recap","relic","repay","repel","resin","retro","revel","rhino","rinse","rivet","roast","rogue","rowdy","rupee","rusty","savor","scald","scalp","scant","scone","scoop","scorn","scour","seize","sever","shack","shady","shawl","shire","shove","shrub","shrug","siege","siren","skate","skimp","skirt","skunk","slang","slant","sleek","sleet","slime","sling","sloth","slump","smear","smelt","smirk","snail","snare","sneer","snore","snout","sonic","spade","spasm","spawn","speck","spill","spite","spoof","spook","spool","spoon","spore","spout","squat","squid","staid","stale","stash","stead","steed","sting","stink","stoic","stoke","stomp","stoop","stork","stout","strut","stump","stung","stunk","suave","swarm","swine","swirl","swoon","tacit","talon","tangy","taunt","tepid","thief","thigh","thorn","tiara","timid","topaz","torso","trout","tulip","tunic","twang","tweed","ulcer","uncut","undue","unfit","untie","usher","valet","vapor","vegan","viper","visor","vodka","wacky","waltz","whack","whiff","whirl","wield","windy","wince","witty","woken","woozy","wreck","wrist","zesty","zippy","llama","otter"]);
 
-// Combine all into valid set
-const ALL_VALID = new Set([...WORDS, ...VALID_EXTRA]);
+const AR_WORDS=["كتاب","عالم","سلام","جميل","كبير","صغير","قديم","جديد","بعيد","قريب","سعيد","حزين","طويل","عريض","ثقيل","خفيف","بارد","حامض","مالح","نظيف","قوية","ضعيف","غريب","عجيب","سريع","بطيء","ذكية","عاقل","صادق","كاذب","شجاع","جبان","كريم","بخيل","رحيم","قاسي","عادل","ظالم","حكيم","سفيه","نشيط","كسول","صبور","عجول","هادئ","لطيف","مدرس","طالب","طبيب","محام","تاجر","فلاح","خباز","نجار","حداد","بحار","طيار","سائق","حارس","خادم","رئيس","وزير","سفير","قاضي","شاعر","كاتب","رسام","مغني","ممثل","لاعب","مدير","عامل","بائع","معلم","مسجد","مكتب","مصنع","ملعب","شارع","نهار","ليلة","صباح","مساء","شتاء","ربيع","خريف","شمال","جنوب","شروق","غروب","سماء","غابة","زهرة","شجرة","ثمرة","ورقة","جذور","بذرة","حبوب","تفاح","ليمو","رمان","نخلة","عقلي","جسدي","لسان","جبين","حجري","ذهبي","حديد","نحاس","زجاج","رخام","ابيض","اسود","احمر","اخضر","ازرق","اصفر","وردي","واحد","ثلاث","خمسة","سبعة","تسعة","عشرة","حياة","ولاد","زواج","حربي","سلمي","علمي","نوري","ظلام","حقيق","باطل","خيري","شرير","صلاة","صيام","زكاة","دعاء","قران","حديث","فرحة","غضبي","خوفي","حبية","شوقي","حنين","بيتي","قصري","خيمة","غرفة","شرفة","طعام","شراب","لحمي","حليب","عسلي","مدين","قرية","بلاد","دولة","جزير","قارة","محيط","خليج","مضيق","حصان","بقرة","دجاج","نسري","حمام","سمكة","نبيل","جليل","رفيق","صديق","حبيب","قريب","جاري","ضيفي","زائر","قادم","مهمة","واجب","ممكن","معلق","فكرة","عربي","خالد","سمير"];
+const AR_EXTRA=new Set(["فكرة","لغوي","عربي","نصري","فتحي","عمري","خالد","سمير","نبيل","جليل","رفيق","صديق","حبيب","قريب","نسيب","جاري","ضيفي","زائر","قادم","مسافر","مفيد","لازم","واجب","ممكن","معرو","مجهو","محبو","مطلو","ممنو","منظم","مرتب","نظيف","رطبي","معتد","مشمس","غائم","ممطر","عاصف","ثلجي","رعدي","جليد","كتبي","درسي","علمي","فهمي","حفظي","تذكر","فكري","حلمي","امير","سلطا","ملكي","نبوي","ديني","دنيا","اخرة","توبة","رحمة","نعمة","بركة","هداي","ضلال","ايمن","يسار","وسطي","اعلى","اسفل","امام","خلفي","فوقي","تحتي","يمين","شمال","طاهر","فاسد","حلال","حرام","مباح","فرضي","سنية","نافل","مستح","مكرو"]);
 
-// ===== STATE =====
-let answer, guesses, currentGuess, currentRow, gameOver, keyStates;
+const ALL_EN=new Set([...EN_WORDS,...EN_EXTRA]);
+const ALL_AR=new Set([...AR_WORDS,...AR_EXTRA]);
 
-function pickWord() {
-  return WORDS[Math.floor(Math.random() * WORDS.length)];
+const KB_EN=[['q','w','e','r','t','y','u','i','o','p'],['a','s','d','f','g','h','j','k','l'],['Enter','z','x','c','v','b','n','m','Backspace']];
+const KB_AR=[['ض','ص','ث','ق','ف','غ','ع','ه','خ','ح','ج','د'],['ش','س','ي','ب','ل','ا','ت','ن','م','ك','ط'],['Enter','ئ','ء','ؤ','ر','ذ','ى','ة','و','ز','ظ','Backspace']];
+
+let lang='en',answer,guesses,currentGuess,currentRow,gameOver,keyStates,wordList,validSet,kbLayout;
+
+function setLang(l){
+  lang=l;
+  document.body.classList.toggle('ar',lang==='ar');
+  wordList=lang==='en'?EN_WORDS:AR_WORDS;
+  validSet=lang==='en'?ALL_EN:ALL_AR;
+  kbLayout=lang==='en'?KB_EN:KB_AR;
+  document.getElementById('logoText').textContent=i18n[lang].title;
+  document.getElementById('langBtn').textContent=lang==='en'?'ع':'EN';
+  document.getElementById('langBtn').title=lang==='en'?'العربية':'English';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=i18n[lang][el.dataset.i18n]||el.textContent});
+  buildHelp();
+  newGame();
 }
 
-function newGame() {
-  answer = pickWord();
-  guesses = [];
-  currentGuess = '';
-  currentRow = 0;
-  gameOver = false;
-  keyStates = {};
+function pickWord(){return wordList[Math.floor(Math.random()*wordList.length)]}
+
+function newGame(){
+  answer=pickWord();
+  guesses=[];currentGuess='';currentRow=0;gameOver=false;keyStates={};
   document.getElementById('resultOv').classList.remove('on');
-  buildBoard();
-  buildKeyboard();
+  buildBoard();buildKeyboard();
 }
 
-// ===== DOM =====
-const boardEl = document.getElementById('board');
-const toastEl = document.getElementById('toast');
-const confEl = document.getElementById('conf');
+const boardEl=document.getElementById('board');
+const toastEl=document.getElementById('toast');
+const confEl=document.getElementById('conf');
 
-function buildBoard() {
-  boardEl.innerHTML = '';
-  for (let r = 0; r < 6; r++) {
-    const row = document.createElement('div');
-    row.className = 'row';
-    row.id = 'row' + r;
-    for (let c = 0; c < 5; c++) {
-      const tile = document.createElement('div');
-      tile.className = 'tile';
-      tile.id = `t${r}${c}`;
-      row.appendChild(tile);
-    }
-    boardEl.appendChild(row);
-  }
+function buildBoard(){
+  boardEl.innerHTML='';
+  for(let r=0;r<6;r++){const row=document.createElement('div');row.className='row';row.id='row'+r;
+    for(let c=0;c<5;c++){const t=document.createElement('div');t.className='tile';t.id='t'+r+c;row.appendChild(t)}
+    boardEl.appendChild(row)}
 }
 
-function buildKeyboard() {
-  const kbEl = document.getElementById('keyboard');
-  const rows = kbEl.querySelectorAll('.kb-row');
-  rows.forEach(row => {
-    const keys = row.dataset.keys.split(',');
-    row.innerHTML = '';
-    keys.forEach(k => {
-      const btn = document.createElement('button');
-      btn.className = 'key' + (k === 'Enter' || k === 'Backspace' ? ' wide' : '');
-      btn.dataset.key = k;
-      btn.textContent = k === 'Backspace' ? '⌫' : k;
-      btn.addEventListener('click', () => handleKey(k));
-      row.appendChild(btn);
-    });
-  });
+function buildKeyboard(){
+  const kb=document.getElementById('keyboard');kb.innerHTML='';
+  kbLayout.forEach(rk=>{const rd=document.createElement('div');rd.className='kb-row';
+    rk.forEach(k=>{const b=document.createElement('button');b.className='key'+(k==='Enter'||k==='Backspace'?' wide':'');
+      b.dataset.key=k;b.textContent=k==='Backspace'?'⌫':k==='Enter'?'⏎':k;
+      b.addEventListener('click',()=>handleKey(k));rd.appendChild(b)});
+    kb.appendChild(rd)});
 }
 
-function updateTile(row, col, letter) {
-  const tile = document.getElementById(`t${row}${col}`);
-  tile.textContent = letter;
-  tile.classList.toggle('filled', letter !== '');
+function buildHelp(){
+  const t=i18n[lang];let h='<h2>'+t.helpTitle+'</h2>';
+  t.helpSteps.forEach((s,i)=>{h+='<div class="how-step"><div class="how-num">'+(i+1)+'</div><div class="how-text">'+s+'</div></div>'});
+  h+='<button class="modal-close" id="helpClose">'+t.gotIt+'</button>';
+  document.getElementById('helpContent').innerHTML=h;
+  document.getElementById('helpClose').addEventListener('click',()=>document.getElementById('helpModal').classList.remove('on'));
 }
 
-function toast(msg, dur = 1500) {
-  clearTimeout(toast._t);
-  toastEl.textContent = msg;
-  toastEl.classList.add('on');
-  toast._t = setTimeout(() => toastEl.classList.remove('on'), dur);
+function getChars(s){return[...s]}
+
+function updateTile(r,c,l){const t=document.getElementById('t'+r+c);t.textContent=l;t.classList.toggle('filled',l!=='')}
+
+function showToast(m,d){clearTimeout(showToast._t);toastEl.textContent=m;toastEl.classList.add('on');showToast._t=setTimeout(()=>toastEl.classList.remove('on'),d||1500)}
+
+function confetti(){confEl.innerHTML='';const c=['#ff6b4a','#ffd166','#22c55e','#3b82f6','#8b5cf6','#ec4899'];
+  for(let i=0;i<50;i++){const p=document.createElement('div');p.className='conf-p';p.style.left=Math.random()*100+'%';
+    p.style.background=c[~~(Math.random()*c.length)];p.style.width=(6+Math.random()*8)+'px';p.style.height=(6+Math.random()*8)+'px';
+    p.style.borderRadius=Math.random()>.5?'50%':'2px';p.style.animationDuration=(2+Math.random()*2)+'s';p.style.animationDelay=(Math.random()*.8)+'s';
+    confEl.appendChild(p)}setTimeout(()=>confEl.innerHTML='',5000)}
+
+function handleKey(key){
+  if(gameOver)return;const t=i18n[lang];
+  if(key==='Backspace'){const ch=getChars(currentGuess);ch.pop();currentGuess=ch.join('');updateTile(currentRow,ch.length,'');return}
+  if(key==='Enter'){const ch=getChars(currentGuess);if(ch.length<5){showToast(t.notEnough);shakeRow();return}if(!validSet.has(currentGuess)){showToast(t.notValid);shakeRow();return}submitGuess();return}
+  const ch=getChars(currentGuess);if(ch.length>=5)return;
+  if(lang==='en'&&/^[a-z]$/.test(key)){currentGuess+=key;updateTile(currentRow,ch.length,key)}
+  else if(lang==='ar'){currentGuess+=key;updateTile(currentRow,ch.length,key)}
 }
 
-function confetti() {
-  confEl.innerHTML = '';
-  const cols = ['#ff6b4a','#ffd166','#22c55e','#3b82f6','#8b5cf6','#ec4899'];
-  for (let i = 0; i < 50; i++) {
-    const p = document.createElement('div');
-    p.className = 'conf-p';
-    p.style.left = Math.random() * 100 + '%';
-    p.style.background = cols[~~(Math.random() * cols.length)];
-    p.style.width = (6 + Math.random() * 8) + 'px';
-    p.style.height = (6 + Math.random() * 8) + 'px';
-    p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-    p.style.animationDuration = (2 + Math.random() * 2) + 's';
-    p.style.animationDelay = (Math.random() * 0.8) + 's';
-    confEl.appendChild(p);
-  }
-  setTimeout(() => confEl.innerHTML = '', 5000);
+function shakeRow(){const r=document.getElementById('row'+currentRow);r.style.animation='shake .5s';setTimeout(()=>r.style.animation='',500)}
+
+function submitGuess(){
+  const guess=currentGuess,gc=getChars(guess),ac=getChars(answer),result=evalGuess(gc,ac);
+  guesses.push({word:guess,chars:gc,result});
+  const row=document.getElementById('row'+currentRow),tiles=row.children;
+  for(let i=0;i<5;i++){((i)=>{setTimeout(()=>{tiles[i].classList.add('reveal',result[i])},i*300)})(i)}
+  setTimeout(()=>{
+    for(let i=0;i<5;i++){const l=gc[i],s=result[i],p={absent:0,present:1,correct:2};
+      if(!keyStates[l]||p[s]>p[keyStates[l]])keyStates[l]=s;
+      const ke=document.querySelector('[data-key="'+CSS.escape(l)+'"]');
+      if(ke)ke.className='key'+(keyStates[l]?' '+keyStates[l]:'')}
+    if(guess===answer){gameOver=true;bounceRow(currentRow);confetti();setTimeout(showResult,1800)}
+    else if(currentRow>=5){gameOver=true;setTimeout(showResult,1600)}
+    currentRow++;currentGuess='';
+  },5*300+300);
 }
 
-// ===== GAME LOGIC =====
-function handleKey(key) {
-  if (gameOver) return;
-
-  if (key === 'Backspace') {
-    currentGuess = currentGuess.slice(0, -1);
-    updateTile(currentRow, currentGuess.length, '');
-    return;
-  }
-
-  if (key === 'Enter') {
-    if (currentGuess.length < 5) { toast('Not enough letters'); shakeRow(); return; }
-    if (!ALL_VALID.has(currentGuess)) { toast('Not in word list'); shakeRow(); return; }
-    submitGuess();
-    return;
-  }
-
-  if (currentGuess.length >= 5) return;
-  if (/^[a-z]$/.test(key)) {
-    currentGuess += key;
-    updateTile(currentRow, currentGuess.length - 1, key);
-  }
+function evalGuess(gc,ac){
+  const r=Array(5).fill('absent'),a=[...ac],g=[...gc];
+  for(let i=0;i<5;i++){if(g[i]===a[i]){r[i]='correct';a[i]=null;g[i]=null}}
+  for(let i=0;i<5;i++){if(!g[i])continue;const x=a.indexOf(g[i]);if(x!==-1){r[i]='present';a[x]=null}}
+  return r;
 }
 
-function shakeRow() {
-  const row = document.getElementById('row' + currentRow);
-  row.style.animation = 'shake 0.5s';
-  setTimeout(() => row.style.animation = '', 500);
-}
+function bounceRow(ri){const t=document.getElementById('row'+ri).children;
+  for(let i=0;i<5;i++){setTimeout(()=>{t[i].style.animation='bounce .5s ease';setTimeout(()=>t[i].style.animation='',500)},i*100)}}
 
-function submitGuess() {
-  const guess = currentGuess;
-  const result = evaluateGuess(guess);
-  guesses.push({ word: guess, result });
-
-  // Reveal tiles with animation
-  const row = document.getElementById('row' + currentRow);
-  const tiles = row.children;
-
-  for (let i = 0; i < 5; i++) {
-    const tile = tiles[i];
-    const state = result[i];
-    setTimeout(() => {
-      tile.classList.add('reveal', state);
-    }, i * 300);
-  }
-
-  // Update keyboard after all reveals
-  setTimeout(() => {
-    for (let i = 0; i < 5; i++) {
-      const letter = guess[i];
-      const state = result[i];
-      // Only upgrade: absent < present < correct
-      const priority = { 'absent': 0, 'present': 1, 'correct': 2 };
-      if (!keyStates[letter] || priority[state] > priority[keyStates[letter]]) {
-        keyStates[letter] = state;
-      }
-      // Update key element
-      const keyEl = document.querySelector(`[data-key="${letter}"]`);
-      if (keyEl) {
-        keyEl.className = 'key' + (keyStates[letter] ? ' ' + keyStates[letter] : '');
-      }
-    }
-
-    // Check win/lose
-    if (guess === answer) {
-      gameOver = true;
-      bounceRow(currentRow);
-      confetti();
-      setTimeout(showResult, 1800);
-    } else if (currentRow >= 5) {
-      gameOver = true;
-      setTimeout(showResult, 1600);
-    }
-
-    currentRow++;
-    currentGuess = '';
-  }, 5 * 300 + 300);
-}
-
-function evaluateGuess(guess) {
-  const result = Array(5).fill('absent');
-  const answerArr = answer.split('');
-  const guessArr = guess.split('');
-
-  // First pass: correct
-  for (let i = 0; i < 5; i++) {
-    if (guessArr[i] === answerArr[i]) {
-      result[i] = 'correct';
-      answerArr[i] = null;
-      guessArr[i] = null;
-    }
-  }
-
-  // Second pass: present
-  for (let i = 0; i < 5; i++) {
-    if (guessArr[i] === null) continue;
-    const idx = answerArr.indexOf(guessArr[i]);
-    if (idx !== -1) {
-      result[i] = 'present';
-      answerArr[idx] = null;
-    }
-  }
-
-  return result;
-}
-
-function bounceRow(rowIdx) {
-  const tiles = document.getElementById('row' + rowIdx).children;
-  for (let i = 0; i < 5; i++) {
-    setTimeout(() => {
-      tiles[i].style.animation = 'bounce 0.5s ease';
-      setTimeout(() => tiles[i].style.animation = '', 500);
-    }, i * 100);
-  }
-}
-
-function showResult() {
-  const won = guesses.length > 0 && guesses[guesses.length - 1].word === answer;
-  const emoji = won ? '🎉' : '😔';
-  const title = won ? ['Genius!', 'Magnificent!', 'Impressive!', 'Splendid!', 'Great!', 'Phew!'][guesses.length - 1] : 'Better luck next time';
-
-  document.getElementById('resEmoji').textContent = emoji;
-  document.getElementById('resTitle').textContent = title;
-  document.getElementById('resStats').innerHTML = won
-    ? `The word was <strong>${answer.toUpperCase()}</strong><br>Solved in <strong>${guesses.length}/6</strong> guesses`
-    : `The word was <strong>${answer.toUpperCase()}</strong>`;
-
+function showResult(){
+  const t=i18n[lang],won=guesses.length>0&&guesses[guesses.length-1].word===answer;
+  document.getElementById('resEmoji').textContent=won?'🎉':'😔';
+  document.getElementById('resTitle').textContent=won?t.win[guesses.length-1]:t.lose;
+  const ad=lang==='ar'?answer:answer.toUpperCase();
+  document.getElementById('resStats').innerHTML=won?t.wordWas+' <strong>'+ad+'</strong><br>'+t.solvedIn+' <strong>'+guesses.length+'/6</strong> '+t.guesses:t.wordWas+' <strong>'+ad+'</strong>';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=i18n[lang][el.dataset.i18n]||el.textContent});
   document.getElementById('resultOv').classList.add('on');
 }
 
-function getShareText() {
-  const won = guesses.length > 0 && guesses[guesses.length - 1].word === answer;
-  const emojiMap = { correct: '🟩', present: '🟨', absent: '⬛' };
-  let text = `🟩 Wordle — ${won ? guesses.length : 'X'}/6\n\n`;
-  guesses.forEach(g => {
-    text += g.result.map(r => emojiMap[r]).join('') + '\n';
-  });
-  text += '\nhttps://gamearcade.github.io/arcade-hub/wordle.html';
-  return text;
+function getShareText(){
+  const t=i18n[lang],won=guesses.length>0&&guesses[guesses.length-1].word===answer;
+  const em={correct:'🟩',present:'🟨',absent:'⬛'},ll=lang==='ar'?'عربي':'EN';
+  let tx='🟩 Wordle ('+ll+') — '+(won?guesses.length:'X')+'/6\n\n';
+  guesses.forEach(g=>{tx+=g.result.map(r=>em[r]).join('')+'\n'});
+  tx+='\nhttps://gamearcade.github.io/arcade-hub/wordle.html';return tx;
 }
 
-// ===== EVENTS =====
-document.addEventListener('keydown', e => {
-  if (gameOver) return;
-  if (e.key === 'Enter') { handleKey('Enter'); e.preventDefault(); }
-  else if (e.key === 'Backspace') { handleKey('Backspace'); e.preventDefault(); }
-  else if (/^[a-zA-Z]$/.test(e.key)) handleKey(e.key.toLowerCase());
+const arKeyMap={'q':'ض','w':'ص','e':'ث','r':'ق','t':'ف','y':'غ','u':'ع','i':'ه','o':'خ','p':'ح','[':'ج',']':'د','a':'ش','s':'س','d':'ي','f':'ب','g':'ل','h':'ا','j':'ت','k':'ن','l':'م',';':'ك','\'':'ط','z':'ئ','x':'ء','c':'ؤ','v':'ر','b':'ذ','n':'ى','m':'ة',',':'و','.':'ز','/':'ظ'};
+
+document.addEventListener('keydown',e=>{
+  if(gameOver)return;
+  if(e.key==='Enter'){handleKey('Enter');e.preventDefault();return}
+  if(e.key==='Backspace'){handleKey('Backspace');e.preventDefault();return}
+  if(lang==='en'){if(/^[a-zA-Z]$/.test(e.key))handleKey(e.key.toLowerCase())}
+  else{if(/[\u0600-\u06FF]/.test(e.key))handleKey(e.key);
+    else if(/^[a-zA-Z]$/.test(e.key)){const m=arKeyMap[e.key.toLowerCase()];if(m)handleKey(m)}}
 });
 
-document.getElementById('shareBtn').addEventListener('click', () => {
-  const txt = getShareText();
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(txt).then(() => toast('Copied to clipboard!'));
-  }
-});
+document.getElementById('shareBtn').addEventListener('click',()=>{
+  const tx=getShareText();if(navigator.clipboard)navigator.clipboard.writeText(tx).then(()=>showToast(i18n[lang].copied))});
+document.getElementById('playAgainBtn').addEventListener('click',newGame);
+document.getElementById('langBtn').addEventListener('click',()=>setLang(lang==='en'?'ar':'en'));
+document.getElementById('helpBtn').addEventListener('click',()=>document.getElementById('helpModal').classList.add('on'));
+document.getElementById('helpModal').addEventListener('click',e=>{if(e.target===document.getElementById('helpModal'))document.getElementById('helpModal').classList.remove('on')});
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  const l=document.documentElement.getAttribute('data-theme')==='light';
+  if(l)document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme','light')});
 
-document.getElementById('playAgainBtn').addEventListener('click', newGame);
-
-// Help
-document.getElementById('helpBtn').addEventListener('click', () => document.getElementById('helpModal').classList.add('on'));
-document.getElementById('helpClose').addEventListener('click', () => document.getElementById('helpModal').classList.remove('on'));
-document.getElementById('helpModal').addEventListener('click', e => {
-  if (e.target === document.getElementById('helpModal')) document.getElementById('helpModal').classList.remove('on');
-});
-
-// Theme
-document.getElementById('themeBtn').addEventListener('click', () => {
-  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-  if (isLight) document.documentElement.removeAttribute('data-theme');
-  else document.documentElement.setAttribute('data-theme', 'light');
-});
-
-// ===== INIT =====
-newGame();
-
+setLang('en');
 })();
 </script>
 </body>
