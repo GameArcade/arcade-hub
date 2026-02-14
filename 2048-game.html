@@ -18,6 +18,17 @@
     --gap: 8px;
     --cell-size: calc((var(--size) - 5 * var(--gap)) / 4);
     --radius: 12px;
+    --overlay-bg: rgba(15, 15, 19, 0.85);
+    --btn-text: #fff;
+  }
+
+  [data-theme="light"] {
+    --bg: #f5f1eb;
+    --board: #e8e0d4;
+    --cell: #d6cdbf;
+    --text: #1a1a24;
+    --overlay-bg: rgba(245, 241, 235, 0.9);
+    --btn-text: #fff;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -35,6 +46,7 @@
     user-select: none;
     -webkit-user-select: none;
     touch-action: none;
+    transition: background 0.3s, color 0.3s;
   }
 
   /* Subtle animated background */
@@ -224,7 +236,7 @@
   .overlay {
     position: absolute;
     inset: 0;
-    background: rgba(15, 15, 19, 0.85);
+    background: var(--overlay-bg);
     border-radius: 16px;
     display: flex;
     flex-direction: column;
@@ -312,6 +324,85 @@
     .dpad { display: grid; }
     .controls .hint { display: none; }
   }
+
+  /* Light theme tile overrides */
+  [data-theme="light"] .tile[data-value="2"]  { background: #eee4da; color: #776e65; }
+  [data-theme="light"] .tile[data-value="4"]  { background: #ede0c8; color: #776e65; }
+  [data-theme="light"] .tile[data-value="8"]  { background: #f2b179; color: #fff; }
+  [data-theme="light"] .tile[data-value="16"] { background: #f59563; color: #fff; }
+  [data-theme="light"] .tile[data-value="32"] { background: #f67c5f; color: #fff; }
+  [data-theme="light"] .tile[data-value="64"] { background: #f65e3b; color: #fff; }
+  [data-theme="light"] .tile[data-value="128"]{ background: #edcf72; color: #fff; }
+  [data-theme="light"] .tile[data-value="256"]{ background: #edcc61; color: #fff; }
+  [data-theme="light"] .tile[data-value="512"]{ background: #edc850; color: #fff; }
+  [data-theme="light"] .tile[data-value="1024"]{background: #edc53f; color: #fff; }
+  [data-theme="light"] .tile[data-value="2048"]{background: linear-gradient(135deg,#edc22e,#f2b179); color: #fff; }
+  [data-theme="light"] .score-box { border-color: rgba(0,0,0,0.08); }
+  [data-theme="light"] .score-box .label { color: rgba(0,0,0,0.35); }
+  [data-theme="light"] .score-box .value { color: #c0392b; }
+  [data-theme="light"] .board { border-color: rgba(0,0,0,0.1); box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
+  [data-theme="light"] body::before { background: none; }
+  [data-theme="light"] .dpad-btn { border-color: rgba(0,0,0,0.08); color: rgba(0,0,0,0.35); }
+  [data-theme="light"] .dpad-btn:active { background: rgba(255,107,74,0.1); color: var(--accent); }
+  [data-theme="light"] .modal-box { background: #fff; border-color: rgba(0,0,0,0.08); }
+  [data-theme="light"] .modal-box h2 { -webkit-text-fill-color: initial; background: none; color: var(--accent); }
+  [data-theme="light"] .how-text { color: #555; }
+  [data-theme="light"] .how-text strong { color: #1a1a24; }
+  [data-theme="light"] .how-key { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); color: rgba(0,0,0,0.4); }
+  [data-theme="light"] .hint { color: rgba(0,0,0,0.35); }
+
+  /* Icon buttons */
+  .icon-btn {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    background: var(--board); color: rgba(255,255,255,0.5);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 0.85rem; transition: all 0.15s;
+    font-family: inherit; text-decoration: none;
+  }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .icon-btn:active { transform: scale(0.92); }
+  [data-theme="light"] .icon-btn { border-color: rgba(0,0,0,0.12); color: rgba(0,0,0,0.4); }
+  [data-theme="light"] .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Share result overlay */
+  .share-overlay {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; background: var(--overlay-bg);
+    backdrop-filter: blur(6px);
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .share-overlay.active { opacity: 1; pointer-events: auto; }
+  .share-box {
+    background: var(--board); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 24px; max-width: 340px; width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4); text-align: center;
+    animation: modalIn 0.35s cubic-bezier(.34,1.56,.64,1);
+  }
+  [data-theme="light"] .share-box { background: #fff; border-color: rgba(0,0,0,0.08); }
+  .share-box h3 {
+    font-family: 'Space Mono', monospace; font-size: 1.1rem; margin-bottom: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .share-text {
+    background: rgba(255,255,255,0.04); border-radius: 10px; padding: 14px;
+    font-family: 'Space Mono', monospace; font-size: 0.85rem;
+    line-height: 1.6; white-space: pre-line; margin-bottom: 14px;
+    color: var(--text);
+  }
+  [data-theme="light"] .share-text { background: rgba(0,0,0,0.04); }
+
+  /* Toast */
+  .toast {
+    position: fixed; top: 50px; left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: var(--text); color: var(--bg); padding: 10px 24px;
+    border-radius: 8px; font-weight: 700; font-size: 0.82rem;
+    z-index: 300; opacity: 0; pointer-events: none; transition: all 0.3s;
+  }
+  .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   /* Help button & modal */
   .help-btn {
@@ -459,7 +550,10 @@
 
 <div class="container">
   <div class="header">
-    <div class="logo">2048</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="logo">2048</div>
+      <a class="icon-btn" href="index.html" title="Home">⌂</a>
+    </div>
     <div class="scores">
       <div class="score-box">
         <div class="label">Score</div>
@@ -475,6 +569,8 @@
   <div class="controls">
     <span class="hint">Arrow keys or swipe to play</span>
     <div style="display:flex;gap:8px;align-items:center">
+      <button class="icon-btn" id="themeBtn" title="Toggle theme">◐</button>
+      <button class="icon-btn" id="shareGameBtn" title="Share score">📋</button>
       <button class="help-btn" id="helpBtn">?</button>
       <button class="btn" id="newGameBtn">New Game</button>
     </div>
@@ -501,6 +597,21 @@
     <div class="dpad-btn empty"></div>
   </div>
 </div>
+
+<!-- Share overlay -->
+<div class="share-overlay" id="shareOverlay">
+  <div class="share-box">
+    <h3>Share Score</h3>
+    <div class="share-text" id="shareText"></div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn" onclick="copyShare()">📋 Copy</button>
+      <button class="btn" onclick="document.getElementById('shareOverlay').classList.remove('active')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast2048"></div>
 
 <!-- How to Play Modal -->
 <div class="modal-overlay" id="helpModal">
@@ -786,6 +897,35 @@
   });
 
   document.getElementById('newGameBtn').addEventListener('click', init);
+
+  // Theme toggle
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    document.documentElement.setAttribute('data-theme', isLight ? '' : 'light');
+    if(isLight) document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', 'light');
+  });
+
+  // Share
+  function showShareOverlay() {
+    const txt = `🎮 2048\n🏆 Score: ${score}\n⭐ Best: ${best}\nhttps://gamearcade.github.io/arcade-hub/2048-game.html`;
+    document.getElementById('shareText').textContent = txt;
+    document.getElementById('shareOverlay').classList.add('active');
+  }
+  window.copyShare = function() {
+    const txt = document.getElementById('shareText').textContent;
+    if(navigator.clipboard) {
+      navigator.clipboard.writeText(txt).then(() => {
+        const t = document.getElementById('toast2048');
+        t.textContent = 'Copied!'; t.classList.add('on');
+        setTimeout(() => t.classList.remove('on'), 1500);
+      });
+    }
+  };
+  document.getElementById('shareGameBtn').addEventListener('click', showShareOverlay);
+  document.getElementById('shareOverlay').addEventListener('click', (e) => {
+    if(e.target === document.getElementById('shareOverlay')) document.getElementById('shareOverlay').classList.remove('active');
+  });
 
   // Help modal
   const helpModal = document.getElementById('helpModal');

@@ -17,6 +17,14 @@
     --accent3: #e67e22;
   }
 
+  [data-theme="light"] {
+    --bg: #f5f1eb;
+    --card: #fff;
+    --border: rgba(0,0,0,0.08);
+    --text: #1a1a24;
+    --muted: rgba(0,0,0,0.35);
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
@@ -30,7 +38,23 @@
     justify-content: center;
     padding: 32px 20px;
     overflow-x: hidden;
+    transition: background 0.3s, color 0.3s;
   }
+
+  [data-theme="light"] body::before { background: none; }
+  [data-theme="light"] .game-card { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  [data-theme="light"] .game-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
+  [data-theme="light"] .game-card::after { color: rgba(0,0,0,0.2); }
+  [data-theme="light"] .game-card:hover::after { color: var(--accent1); }
+
+  .theme-toggle {
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1.5px solid var(--border); background: var(--card);
+    color: var(--muted); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 1rem; transition: all 0.15s;
+    position: absolute; top: 20px; right: 20px;
+  }
+  .theme-toggle:hover { border-color: var(--accent1); color: var(--accent1); }
 
   body::before {
     content: '';
@@ -176,6 +200,8 @@
 </head>
 <body>
 
+<button class="theme-toggle" id="themeBtn" title="Toggle theme">◐</button>
+
 <div class="container">
   <div class="header">
     <h1>Game Arcade</h1>
@@ -210,6 +236,14 @@
 
   <div class="footer">Built with ♥</div>
 </div>
+
+<script>
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  if (isLight) document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', 'light');
+});
+</script>
 
 </body>
 </html>

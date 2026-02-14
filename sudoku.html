@@ -30,6 +30,25 @@
   --radius: 12px;
 }
 
+[data-theme="light"] {
+  --bg: #f5f1eb;
+  --board: #e8e0d4;
+  --cell: #f9f6f1;
+  --cell-hover: #ede8de;
+  --cell-sel: rgba(255,107,74,0.18);
+  --cell-peer: rgba(255,107,74,0.07);
+  --cell-same: rgba(255,209,102,0.15);
+  --text: #1a1a24;
+  --text2: rgba(0,0,0,0.4);
+  --border: rgba(0,0,0,0.08);
+  --border-box: rgba(0,0,0,0.22);
+  --border-cell: rgba(0,0,0,0.06);
+  --given: #444;
+  --placed: #1a1a24;
+  --note: rgba(0,0,0,0.35);
+  --error: rgba(239,68,68,0.15);
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
@@ -45,7 +64,30 @@ body {
   overflow-x: hidden;
   user-select: none;
   -webkit-user-select: none;
+  transition: background 0.3s, color 0.3s;
 }
+
+[data-theme="light"] body::before { background: none; }
+[data-theme="light"] .board { box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+[data-theme="light"] .icon-btn { border-color: rgba(0,0,0,0.12); color: rgba(0,0,0,0.4); }
+[data-theme="light"] .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+[data-theme="light"] .num-btn { border-color: rgba(0,0,0,0.08); color: var(--text); }
+[data-theme="light"] .num-btn:hover { border-color: var(--accent); color: var(--accent); }
+[data-theme="light"] .act-btn { border-color: rgba(0,0,0,0.08); color: rgba(0,0,0,0.5); }
+[data-theme="light"] .act-btn:hover { border-color: var(--accent); color: var(--accent); }
+[data-theme="light"] .act-btn.on { background: var(--accent); color: #fff; }
+[data-theme="light"] .diff-b { border-color: rgba(0,0,0,0.08); color: rgba(0,0,0,0.5); }
+[data-theme="light"] .diff-b:hover { border-color: var(--accent); color: var(--accent); }
+[data-theme="light"] .diff-b.on { background: var(--accent); color: #fff; }
+[data-theme="light"] .ov-box { background: #fff; border-color: rgba(0,0,0,0.08); }
+[data-theme="light"] .modal-box { background: #fff; border-color: rgba(0,0,0,0.08); }
+[data-theme="light"] .modal-box h2 { -webkit-text-fill-color: initial; background: none; color: var(--accent); }
+[data-theme="light"] .how-text { color: #555; }
+[data-theme="light"] .how-text strong { color: #1a1a24; }
+[data-theme="light"] .overlay { background: rgba(245,241,235,0.9); }
+[data-theme="light"] .modal-overlay { background: rgba(245,241,235,0.9); }
+[data-theme="light"] .ov-stats { background: rgba(0,0,0,0.04); color: #555; }
+[data-theme="light"] .num-btn .count { color: rgba(0,0,0,0.3); }
 
 body::before {
   content: '';
@@ -328,6 +370,7 @@ body::before {
     <div class="logo">Sudoku</div>
     <div class="header-right">
       <button class="icon-btn" id="helpBtn" title="How to Play">?</button>
+      <button class="icon-btn" id="themeBtn" title="Toggle theme">◐</button>
       <button class="icon-btn" id="homeBtn" title="Home" onclick="window.location.href='index.html'">⌂</button>
     </div>
   </div>
@@ -775,6 +818,13 @@ $('shareBtn').addEventListener('click',shareResult);
 $('helpBtn').addEventListener('click',()=>$('helpModal').classList.add('on'));
 $('helpClose').addEventListener('click',()=>$('helpModal').classList.remove('on'));
 $('helpModal').addEventListener('click',e=>{if(e.target===$('helpModal'))$('helpModal').classList.remove('on')});
+
+// Theme toggle
+$('themeBtn').addEventListener('click',()=>{
+  const isLight=document.documentElement.getAttribute('data-theme')==='light';
+  if(isLight)document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme','light');
+});
 
 // Keyboard
 document.addEventListener('keydown',e=>{
