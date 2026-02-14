@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>LinkWords — لنك وردز</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800;900&family=Manrope:wght@500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#faf8f4;--bg2:#f0ece4;--card:#fff;--text:#18181b;--text2:#52525b;
+  --muted:#a1a1aa;--accent:#e67e22;--accent2:#d35400;--border:#e4e4e7;
+  --shadow:0 2px 8px rgba(0,0,0,0.04);--shadow-lg:0 8px 32px rgba(0,0,0,0.08);
+  --yellow:#f59e0b;--yellow-bg:#fef9c3;--yellow-t:#92400e;
+  --green:#22c55e;--green-bg:#dcfce7;--green-t:#166534;
+  --blue:#3b82f6;--blue-bg:#dbeafe;--blue-t:#1e40af;
+  --purple:#8b5cf6;--purple-bg:#ede9fe;--purple-t:#5b21b6;
+  --red:#ef4444;--sel:#27272a;--sel-t:#fafafa;
+  --r:10px;--r2:14px;
+}
+[data-theme=dark]{
+  --bg:#18181b;--bg2:#27272a;--card:#27272a;--text:#fafafa;--text2:#a1a1aa;
+  --muted:#71717a;--border:#3f3f46;--shadow:0 2px 8px rgba(0,0,0,0.2);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.4);
+  --yellow-bg:#422006;--green-bg:#052e16;--blue-bg:#172554;--purple-bg:#2e1065;
+  --yellow-t:#fde68a;--green-t:#bbf7d0;--blue-t:#bfdbfe;--purple-t:#ddd6fe;
+  --sel:#fafafa;--sel-t:#18181b;
+}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Manrope',sans-serif;
+  min-height:100dvh;display:flex;flex-direction:column;align-items:center;
+  user-select:none;-webkit-user-select:none;
+  transition:background .25s,color .25s;
+}
+[dir=rtl] body{font-family:'IBM Plex Sans Arabic',sans-serif}
+[dir=rtl] .en-only{display:none}
+[dir=ltr] .ar-only{display:none}
+
+.app{width:100%;max-width:520px;padding:10px 14px 30px;display:flex;flex-direction:column;gap:10px}
+
+/* Top bar */
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:6px 0}
+.topbar-group{display:flex;gap:6px;align-items:center}
+.icon-btn{
+  width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);
+  background:var(--card);color:var(--text2);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:.85rem;transition:all .15s;font-family:inherit;
+}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+.icon-btn:active{transform:scale(.92)}
+
+/* Header */
+.hdr{text-align:center;padding:2px 0 6px}
+.hdr h1{
+  font-family:'Fraunces',serif;font-size:2.4rem;font-weight:900;
+  letter-spacing:-.5px;line-height:1;
+  background:linear-gradient(135deg,var(--accent),#c0392b);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+[dir=rtl] .hdr h1{font-family:'IBM Plex Sans Arabic',sans-serif;font-size:2.2rem;letter-spacing:0}
+.hdr .sub{font-size:.72rem;color:var(--muted);font-weight:700;letter-spacing:2.5px;text-transform:uppercase;margin-top:4px}
+
+/* Stats strip */
+.stats{
+  display:flex;justify-content:center;gap:24px;
+  padding:8px 16px;background:var(--card);border-radius:var(--r2);
+  border:1px solid var(--border);box-shadow:var(--shadow);
+}
+.st{text-align:center}
+.st-v{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:800;color:var(--accent)}
+[dir=rtl] .st-v{font-family:'IBM Plex Sans Arabic',sans-serif}
+.st-l{font-size:.58rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1.5px}
+
+/* Difficulty */
+.diff-row{display:flex;justify-content:center;gap:6px}
+.diff-b{
+  padding:5px 16px;border-radius:20px;border:1.5px solid var(--border);
+  background:var(--card);font-family:inherit;font-size:.7rem;font-weight:700;
+  color:var(--text2);cursor:pointer;transition:all .15s;
+}
+[dir=rtl] .diff-b{font-family:'IBM Plex Sans Arabic',sans-serif}
+.diff-b:hover{border-color:var(--accent);color:var(--accent)}
+.diff-b.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* Lives */
+.lives-row{display:flex;align-items:center;justify-content:center;gap:6px}
+.lives-lbl{font-size:.72rem;font-weight:700;color:var(--muted)}
+.life{
+  width:20px;height:8px;border-radius:4px;background:var(--accent);
+  transition:all .3s;
+}
+.life.gone{background:var(--border);opacity:.4;transform:scaleX(.6)}
+
+/* Solved */
+.solved{display:flex;flex-direction:column;gap:6px}
+.sv-card{
+  border-radius:var(--r);padding:12px 14px;text-align:center;
+  animation:svAppear .35s cubic-bezier(.34,1.56,.64,1);
+}
+.sv-card.d0{background:var(--yellow-bg);color:var(--yellow-t);border-inline-start:4px solid var(--yellow)}
+.sv-card.d1{background:var(--green-bg);color:var(--green-t);border-inline-start:4px solid var(--green)}
+.sv-card.d2{background:var(--blue-bg);color:var(--blue-t);border-inline-start:4px solid var(--blue)}
+.sv-card.d3{background:var(--purple-bg);color:var(--purple-t);border-inline-start:4px solid var(--purple)}
+@keyframes svAppear{0%{transform:scaleY(0);opacity:0}100%{transform:scaleY(1);opacity:1}}
+.sv-name{font-weight:800;font-size:.76rem;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px}
+[dir=rtl] .sv-name{text-transform:none;letter-spacing:0}
+.sv-words{font-size:.74rem;font-weight:600;opacity:.85}
+
+/* Grid */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.tile{
+  background:var(--card);border:2px solid var(--border);border-radius:var(--r);
+  padding:13px 5px;min-height:54px;display:flex;align-items:center;justify-content:center;
+  text-align:center;font-weight:700;font-size:.8rem;cursor:pointer;
+  transition:all .12s;box-shadow:var(--shadow);line-height:1.25;
+  text-transform:uppercase;letter-spacing:.3px;position:relative;
+}
+[dir=rtl] .tile{
+  font-family:'IBM Plex Sans Arabic',sans-serif;
+  text-transform:none;letter-spacing:0;font-size:.85rem;font-weight:600;
+}
+.tile:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--accent)}
+.tile:active{transform:scale(.95)}
+.tile.sel{
+  background:var(--sel);color:var(--sel-t);border-color:var(--sel);
+  transform:scale(1.04);box-shadow:0 4px 16px rgba(0,0,0,.12);
+}
+.tile.shake{animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+.tile.one{animation:pOne .5s ease}
+@keyframes pOne{0%,100%{box-shadow:var(--shadow)}50%{box-shadow:0 0 0 3px var(--yellow),var(--shadow-lg)}}
+.tile.flash{animation:flash .3s ease forwards}
+@keyframes flash{0%{transform:scale(1)}50%{transform:scale(1.1);background:var(--green);color:#fff;border-color:var(--green)}100%{transform:scale(.7);opacity:0}}
+
+/* Buttons */
+.acts{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.btn{
+  font-family:inherit;font-weight:700;font-size:.78rem;padding:10px 22px;
+  border-radius:24px;cursor:pointer;transition:all .15s;
+  border:2px solid var(--text);background:transparent;color:var(--text);
+}
+[dir=rtl] .btn{font-family:'IBM Plex Sans Arabic',sans-serif}
+.btn:hover{background:var(--text);color:var(--bg)}
+.btn:active{transform:scale(.96)}
+.btn.pri{background:var(--text);color:var(--bg)}
+.btn.pri:hover{opacity:.85}
+.btn.acc{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.acc:hover{background:var(--accent2)}
+.btn:disabled{opacity:.2;cursor:not-allowed;pointer-events:none}
+
+/* Overlay */
+.ov{
+  position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;
+  padding:20px;opacity:0;pointer-events:none;transition:opacity .4s;
+}
+.ov.on{opacity:1;pointer-events:auto}
+.ov-bg{position:absolute;inset:0;background:var(--bg);opacity:.93}
+.ov-box{
+  position:relative;z-index:1;background:var(--card);border-radius:var(--r2);
+  padding:28px 22px;max-width:380px;width:100%;box-shadow:var(--shadow-lg);
+  border:1px solid var(--border);display:flex;flex-direction:column;
+  align-items:center;gap:14px;text-align:center;
+  animation:ovIn .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes ovIn{0%{transform:translateY(30px)scale(.95);opacity:0}100%{transform:none;opacity:1}}
+.ov-emoji{font-size:3.2rem}
+.ov-title{font-family:'Fraunces',serif;font-size:1.5rem;font-weight:900}
+[dir=rtl] .ov-title{font-family:'IBM Plex Sans Arabic',sans-serif}
+.ov-grid{
+  background:var(--bg2);border-radius:var(--r);padding:14px 18px;
+  font-size:1.15rem;line-height:1.9;letter-spacing:2px;width:100%;
+  white-space:pre-line;
+}
+.ov-sub{font-size:.8rem;color:var(--text2);font-weight:600}
+
+/* Toast */
+.toast{
+  position:fixed;top:50px;left:50%;transform:translateX(-50%) translateY(-10px);
+  background:var(--text);color:var(--bg);padding:10px 24px;border-radius:8px;
+  font-weight:700;font-size:.82rem;z-index:200;opacity:0;pointer-events:none;transition:all .3s;
+}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Tutorial overlay */
+.tut{
+  position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.tut.on{opacity:1;pointer-events:auto}
+.tut-box{
+  background:var(--card);border-radius:var(--r2);padding:28px 24px;
+  max-width:400px;width:100%;box-shadow:var(--shadow-lg);
+  animation:ovIn .4s cubic-bezier(.34,1.56,.64,1);
+}
+.tut-box h2{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:900;margin-bottom:14px;text-align:center}
+[dir=rtl] .tut-box h2{font-family:'IBM Plex Sans Arabic',sans-serif}
+.tut-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+.tut-num{
+  min-width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0;
+}
+.tut-txt{font-size:.85rem;line-height:1.6;color:var(--text2)}
+.tut-txt strong{color:var(--text)}
+.tut-colors{display:flex;gap:6px;margin:10px 0}
+.tut-c{width:18px;height:18px;border-radius:4px}
+.tut-c.c0{background:var(--yellow)}
+.tut-c.c1{background:var(--green)}
+.tut-c.c2{background:var(--blue)}
+.tut-c.c3{background:var(--purple)}
+.tut-close{
+  display:block;margin:8px auto 0;font-family:inherit;font-weight:700;font-size:.85rem;
+  padding:10px 32px;border-radius:24px;border:none;background:var(--accent);color:#fff;cursor:pointer;
+}
+[dir=rtl] .tut-close{font-family:'IBM Plex Sans Arabic',sans-serif}
+.tut-close:hover{background:var(--accent2)}
+
+/* Confetti */
+.conf{position:fixed;inset:0;pointer-events:none;z-index:99;overflow:hidden}
+.conf-p{
+  position:absolute;width:10px;height:10px;top:-10px;
+  animation:cFall linear forwards;
+}
+@keyframes cFall{0%{transform:translateY(0)rotate(0);opacity:1}100%{transform:translateY(110vh)rotate(720deg);opacity:0}}
+
+@media(max-width:380px){
+  .tile{font-size:.7rem;padding:10px 3px;min-height:46px}
+  [dir=rtl] .tile{font-size:.76rem}
+  .hdr h1{font-size:2rem}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-group">
+      <button class="icon-btn" id="helpBtn">?</button>
+      <button class="icon-btn" id="themeBtn">◐</button>
+    </div>
+    <div class="topbar-group">
+      <button class="icon-btn" id="langBtn">ع</button>
+    </div>
+  </div>
+
+  <div class="hdr">
+    <h1><span class="en-only">LinkWords</span><span class="ar-only">لنك وردز</span></h1>
+    <div class="sub" id="sub">Find the hidden connections</div>
+  </div>
+
+  <div class="stats">
+    <div class="st"><div class="st-v" id="sStreak">0</div><div class="st-l" id="lStreak">Streak</div></div>
+    <div class="st"><div class="st-v" id="sSolved">0</div><div class="st-l" id="lSolved">Solved</div></div>
+    <div class="st"><div class="st-v" id="sPuzzle">#1</div><div class="st-l" id="lPuzzle">Puzzle</div></div>
+  </div>
+
+  <div class="diff-row" id="diffRow"></div>
+  <div class="lives-row"><span class="lives-lbl" id="livesLbl">Lives</span><span id="lDots"></span></div>
+
+  <div class="solved" id="svArea"></div>
+  <div class="grid" id="grid"></div>
+
+  <div class="acts" id="acts">
+    <button class="btn" id="shufBtn">Shuffle</button>
+    <button class="btn" id="deselBtn">Deselect</button>
+    <button class="btn pri" id="subBtn" disabled>Submit</button>
+  </div>
+  <div class="acts" style="margin-top:2px">
+    <button class="btn acc" id="newBtn">✦ New Puzzle</button>
+  </div>
+</div>
+
+<!-- Result -->
+<div class="ov" id="resOv">
+  <div class="ov-bg"></div>
+  <div class="ov-box">
+    <div class="ov-emoji" id="rEmoji"></div>
+    <div class="ov-title" id="rTitle"></div>
+    <div class="ov-grid" id="rGrid"></div>
+    <div class="ov-sub" id="rSub"></div>
+    <div class="acts">
+      <button class="btn" id="shareBtn">📋 Share</button>
+      <button class="btn acc" id="againBtn">✦ Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tutorial -->
+<div class="tut" id="tut"></div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Confetti -->
+<div class="conf" id="conf"></div>
+
+<script>
+(()=>{
+// ===================== PUZZLE DATABASE =====================
+// Large bank of puzzles with proper Arabic and English
+const DB = {
+en: {
+  easy: [
+    // 1
+    {groups:[
+      {name:"Citrus fruits",words:["LEMON","LIME","ORANGE","GRAPEFRUIT"],difficulty:0},
+      {name:"Card suits",words:["HEARTS","DIAMONDS","CLUBS","SPADES"],difficulty:1},
+      {name:"Baby animals",words:["KITTEN","PUPPY","FOAL","CALF"],difficulty:2},
+      {name:"___ board",words:["SKATE","KEY","DART","CHALK"],difficulty:3}
+    ]},
+    // 2
+    {groups:[
+      {name:"Planets",words:["MARS","VENUS","SATURN","NEPTUNE"],difficulty:0},
+      {name:"Ice cream flavors",words:["VANILLA","MANGO","PISTACHIO","CARAMEL"],difficulty:1},
+      {name:"Things with wings",words:["AIRPLANE","BUTTERFLY","ANGEL","BUILDING"],difficulty:2},
+      {name:"Break ___",words:["FAST","THROUGH","DOWN","DANCE"],difficulty:3}
+    ]},
+    // 3
+    {groups:[
+      {name:"Dog breeds",words:["BOXER","HUSKY","POODLE","BEAGLE"],difficulty:0},
+      {name:"Kitchen tools",words:["WHISK","TONGS","GRATER","LADLE"],difficulty:1},
+      {name:"Things that glow",words:["CANDLE","FIREFLY","SCREEN","STAR"],difficulty:2},
+      {name:"Water ___",words:["FALL","MELON","PROOF","COLOR"],difficulty:3}
+    ]},
+    // 4
+    {groups:[
+      {name:"Breakfast foods",words:["WAFFLE","PANCAKE","BAGEL","CREPE"],difficulty:0},
+      {name:"Musical genres",words:["JAZZ","BLUES","ROCK","PUNK"],difficulty:1},
+      {name:"Olympic sports",words:["FENCING","ROWING","DIVING","ARCHERY"],difficulty:2},
+      {name:"Fire ___",words:["WORK","PLACE","TRUCK","FLY"],difficulty:3}
+    ]},
+    // 5
+    {groups:[
+      {name:"Gemstones",words:["RUBY","OPAL","JADE","PEARL"],difficulty:0},
+      {name:"Shades of blue",words:["NAVY","AZURE","COBALT","TEAL"],difficulty:1},
+      {name:"Things that tick",words:["CLOCK","BOMB","HEART","METRONOME"],difficulty:2},
+      {name:"Golden ___",words:["GATE","RULE","AGE","RATIO"],difficulty:3}
+    ]},
+    // 6
+    {groups:[
+      {name:"Flowers",words:["ROSE","DAISY","TULIP","LILY"],difficulty:0},
+      {name:"Pasta shapes",words:["PENNE","RIGATONI","FUSILLI","FARFALLE"],difficulty:1},
+      {name:"Things that are round",words:["GLOBE","PIZZA","COIN","WHEEL"],difficulty:2},
+      {name:"Sun ___",words:["FLOWER","BURN","SET","RISE"],difficulty:3}
+    ]},
+    // 7
+    {groups:[
+      {name:"Farm animals",words:["COW","SHEEP","GOAT","CHICKEN"],difficulty:0},
+      {name:"Weather words",words:["BREEZE","DRIZZLE","FROST","THUNDER"],difficulty:1},
+      {name:"Things in a wallet",words:["CASH","CARD","PHOTO","RECEIPT"],difficulty:2},
+      {name:"Hand ___",words:["SHAKE","BAG","MADE","SOME"],difficulty:3}
+    ]},
+    // 8
+    {groups:[
+      {name:"Ocean creatures",words:["WHALE","DOLPHIN","SQUID","CORAL"],difficulty:0},
+      {name:"Fairy tale characters",words:["CINDERELLA","RAPUNZEL","ALADDIN","PINOCCHIO"],difficulty:1},
+      {name:"Types of shoes",words:["BOOTS","SANDALS","SNEAKERS","HEELS"],difficulty:2},
+      {name:"Book ___",words:["WORM","MARK","CASE","SHELF"],difficulty:3}
+    ]},
+    // 9
+    {groups:[
+      {name:"Vegetables",words:["CARROT","ONION","PEPPER","CELERY"],difficulty:0},
+      {name:"Dances",words:["SALSA","TANGO","WALTZ","RUMBA"],difficulty:1},
+      {name:"Things with buttons",words:["SHIRT","ELEVATOR","REMOTE","KEYBOARD"],difficulty:2},
+      {name:"Cold ___",words:["FRONT","SHOULDER","BLOODED","CUT"],difficulty:3}
+    ]},
+    // 10
+    {groups:[
+      {name:"Berries",words:["STRAWBERRY","BLUEBERRY","RASPBERRY","BLACKBERRY"],difficulty:0},
+      {name:"Camping gear",words:["TENT","COMPASS","LANTERN","SLEEPING BAG"],difficulty:1},
+      {name:"Things that bounce",words:["BALL","CHECK","TRAMPOLINE","IDEA"],difficulty:2},
+      {name:"Head ___",words:["LINE","BAND","PHONES","QUARTERS"],difficulty:3}
+    ]},
+    // 11
+    {groups:[
+      {name:"Tropical fruits",words:["COCONUT","PAPAYA","GUAVA","PINEAPPLE"],difficulty:0},
+      {name:"Chess pieces",words:["ROOK","BISHOP","PAWN","QUEEN"],difficulty:1},
+      {name:"Things with strings",words:["GUITAR","KITE","PUPPET","VIOLIN"],difficulty:2},
+      {name:"Top ___",words:["SECRET","NOTCH","SOIL","FLOOR"],difficulty:3}
+    ]},
+    // 12
+    {groups:[
+      {name:"Birds",words:["EAGLE","PARROT","PENGUIN","SPARROW"],difficulty:0},
+      {name:"School subjects",words:["MATH","HISTORY","SCIENCE","ENGLISH"],difficulty:1},
+      {name:"Things that drip",words:["FAUCET","CANDLE","PAINT","SWEAT"],difficulty:2},
+      {name:"Night ___",words:["MARE","CLUB","GOWN","SHIFT"],difficulty:3}
+    ]},
+    // 13
+    {groups:[
+      {name:"Nuts",words:["WALNUT","ALMOND","CASHEW","PECAN"],difficulty:0},
+      {name:"Ball sports",words:["SOCCER","TENNIS","GOLF","CRICKET"],difficulty:1},
+      {name:"Things with teeth",words:["COMB","SAW","ZIPPER","GEAR"],difficulty:2},
+      {name:"Black ___",words:["BOARD","SMITH","BERRY","LIST"],difficulty:3}
+    ]},
+    // 14
+    {groups:[
+      {name:"Continents",words:["AFRICA","ASIA","EUROPE","ANTARCTICA"],difficulty:0},
+      {name:"Furniture",words:["COUCH","DRESSER","WARDROBE","OTTOMAN"],difficulty:1},
+      {name:"Things that ring",words:["BELL","PHONE","ALARM","BOXING"],difficulty:2},
+      {name:"Out ___",words:["SIDE","BREAK","FIT","LINE"],difficulty:3}
+    ]},
+    // 15
+    {groups:[
+      {name:"Spices",words:["CINNAMON","GINGER","TURMERIC","PAPRIKA"],difficulty:0},
+      {name:"Art supplies",words:["CANVAS","BRUSH","EASEL","PALETTE"],difficulty:1},
+      {name:"Things that roll",words:["DICE","THUNDER","BARREL","CREDITS"],difficulty:2},
+      {name:"Long ___",words:["SHOT","TERM","BOARD","HORN"],difficulty:3}
+    ]},
+    // 16
+    {groups:[
+      {name:"Trees",words:["MAPLE","CEDAR","BIRCH","WILLOW"],difficulty:0},
+      {name:"Desserts",words:["BROWNIE","TIRAMISU","MOUSSE","SUNDAE"],difficulty:1},
+      {name:"Things with keys",words:["PIANO","LOCK","MAP","LAPTOP"],difficulty:2},
+      {name:"Big ___",words:["BANG","FOOT","BEN","DEAL"],difficulty:3}
+    ]},
+    // 17
+    {groups:[
+      {name:"Reptiles",words:["LIZARD","SNAKE","TURTLE","GECKO"],difficulty:0},
+      {name:"Currencies",words:["DOLLAR","EURO","POUND","YEN"],difficulty:1},
+      {name:"Things that float",words:["BOAT","CLOUD","BALLOON","ICEBERG"],difficulty:2},
+      {name:"Hot ___",words:["DOG","LINE","SHOT","CAKE"],difficulty:3}
+    ]},
+  ],
+  medium: [
+    // 1
+    {groups:[
+      {name:"Things that spin",words:["WHEEL","TORNADO","RECORD","PLANET"],difficulty:0},
+      {name:"Silent letter words",words:["KNIGHT","PSALM","GNOME","WRECK"],difficulty:1},
+      {name:"Slang for money",words:["BREAD","DOUGH","CHEDDAR","BUCKS"],difficulty:2},
+      {name:"Super ___",words:["HERO","BOWL","NOVA","NATURAL"],difficulty:3}
+    ]},
+    // 2
+    {groups:[
+      {name:"Things with layers",words:["CAKE","ONION","EARTH","LASAGNA"],difficulty:0},
+      {name:"Palindromes",words:["KAYAK","LEVEL","RADAR","CIVIC"],difficulty:1},
+      {name:"Can follow 'black'",words:["SMITH","BERRY","BIRD","MAIL"],difficulty:2},
+      {name:"Also a verb & noun",words:["DUCK","PARK","TRAIN","BOOK"],difficulty:3}
+    ]},
+    // 3
+    {groups:[
+      {name:"Types of cloud",words:["CIRRUS","STRATUS","NIMBUS","CUMULUS"],difficulty:0},
+      {name:"Fabrics",words:["SILK","DENIM","VELVET","LINEN"],difficulty:1},
+      {name:"Words meaning fast",words:["SWIFT","RAPID","BRISK","FLEET"],difficulty:2},
+      {name:"___ light",words:["FLASH","MOON","SPOT","HIGH"],difficulty:3}
+    ]},
+    // 4
+    {groups:[
+      {name:"Trees",words:["MAPLE","CEDAR","BIRCH","WILLOW"],difficulty:0},
+      {name:"Board games",words:["CHESS","RISK","CLUE","LIFE"],difficulty:1},
+      {name:"Contain a body part",words:["ELBOW","CARPET","LEGEND","SHAMPOO"],difficulty:2},
+      {name:"Back ___",words:["FIRE","BONE","YARD","STAGE"],difficulty:3}
+    ]},
+    // 5
+    {groups:[
+      {name:"Things that melt",words:["ICE","BUTTER","CANDLE","CHEESE"],difficulty:0},
+      {name:"Musical terms",words:["TEMPO","CHORD","PITCH","OCTAVE"],difficulty:1},
+      {name:"Words with double O",words:["BAMBOO","VOODOO","TABOO","SHAMPOO"],difficulty:2},
+      {name:"___ house",words:["WARE","GREEN","FIRE","POWER"],difficulty:3}
+    ]},
+    // 6
+    {groups:[
+      {name:"Citrus fruits",words:["TANGERINE","KUMQUAT","CLEMENTINE","POMELO"],difficulty:0},
+      {name:"Types of bridge",words:["ARCH","SUSPENSION","BEAM","CABLE"],difficulty:1},
+      {name:"Things with scales",words:["FISH","PIANO","MAP","JUSTICE"],difficulty:2},
+      {name:"Dead ___",words:["LINE","LOCK","END","HEAT"],difficulty:3}
+    ]},
+    // 7
+    {groups:[
+      {name:"Things in a gym",words:["TREADMILL","DUMBBELL","BENCH","MIRROR"],difficulty:0},
+      {name:"Types of wave",words:["RADIO","HEAT","SOUND","BRAIN"],difficulty:1},
+      {name:"Words that mean 'smart'",words:["SHARP","BRIGHT","KEEN","CLEVER"],difficulty:2},
+      {name:"Red ___",words:["CARPET","HERRING","FLAG","TAPE"],difficulty:3}
+    ]},
+    // 8
+    {groups:[
+      {name:"Marine animals",words:["OCTOPUS","SEAHORSE","STARFISH","JELLYFISH"],difficulty:0},
+      {name:"Philosophy terms",words:["ETHICS","LOGIC","VIRTUE","REASON"],difficulty:1},
+      {name:"Things that crack",words:["EGG","CODE","JOKE","KNUCKLE"],difficulty:2},
+      {name:"Air ___",words:["PORT","LINE","CRAFT","TIGHT"],difficulty:3}
+    ]},
+    // 9
+    {groups:[
+      {name:"Herbs",words:["BASIL","THYME","SAGE","MINT"],difficulty:0},
+      {name:"Types of hat",words:["BERET","FEDORA","BEANIE","TURBAN"],difficulty:1},
+      {name:"Things with rings",words:["PLANET","TREE","PHONE","CIRCUS"],difficulty:2},
+      {name:"Half ___",words:["TIME","WAY","BACK","PIPE"],difficulty:3}
+    ]},
+    // 10
+    {groups:[
+      {name:"Things with wings",words:["EAGLE","ANGEL","AIRPLANE","BUTTERFLY"],difficulty:0},
+      {name:"Astronomy terms",words:["NEBULA","PULSAR","QUASAR","ECLIPSE"],difficulty:1},
+      {name:"Things that spread",words:["BUTTER","NEWS","FIRE","DISEASE"],difficulty:2},
+      {name:"Cross ___",words:["WORD","ROAD","BOW","FIT"],difficulty:3}
+    ]},
+    // 11
+    {groups:[
+      {name:"Cheeses",words:["BRIE","GOUDA","FETA","CHEDDAR"],difficulty:0},
+      {name:"Ancient civilizations",words:["ROMAN","MAYAN","GREEK","AZTEC"],difficulty:1},
+      {name:"Things that bloom",words:["FLOWER","ALGAE","TALENT","ROMANCE"],difficulty:2},
+      {name:"Wild ___",words:["CARD","FIRE","LIFE","WEST"],difficulty:3}
+    ]},
+    // 12
+    {groups:[
+      {name:"Volcanoes",words:["VESUVIUS","ETNA","FUJI","KRAKATOA"],difficulty:0},
+      {name:"Literary genres",words:["THRILLER","ROMANCE","SATIRE","MEMOIR"],difficulty:1},
+      {name:"Things that charge",words:["BULL","BATTERY","CREDIT","CAVALRY"],difficulty:2},
+      {name:"Full ___",words:["MOON","HOUSE","TIME","PROOF"],difficulty:3}
+    ]},
+    // 13
+    {groups:[
+      {name:"Deserts",words:["SAHARA","GOBI","MOJAVE","KALAHARI"],difficulty:0},
+      {name:"Pottery terms",words:["GLAZE","KILN","WHEEL","CLAY"],difficulty:1},
+      {name:"Things that stick",words:["GLUE","MEMORY","LABEL","THORN"],difficulty:2},
+      {name:"Short ___",words:["CUT","HAND","CAKE","CIRCUIT"],difficulty:3}
+    ]},
+    // 14
+    {groups:[
+      {name:"Knots",words:["BOWLINE","REEF","HITCH","CLOVE"],difficulty:0},
+      {name:"Film genres",words:["NOIR","WESTERN","COMEDY","HORROR"],difficulty:1},
+      {name:"Things that brew",words:["COFFEE","STORM","TEA","TROUBLE"],difficulty:2},
+      {name:"Side ___",words:["KICK","WALK","LINE","SHOW"],difficulty:3}
+    ]},
+    // 15
+    {groups:[
+      {name:"Constellations",words:["ORION","SCORPIO","DRACO","LYRA"],difficulty:0},
+      {name:"Dance styles",words:["BALLET","FLAMENCO","SAMBA","TANGO"],difficulty:1},
+      {name:"Things that run",words:["WATER","NOSE","PROGRAM","STOCKINGS"],difficulty:2},
+      {name:"Over ___",words:["TIME","BOARD","LOAD","FLOW"],difficulty:3}
+    ]},
+    // 16
+    {groups:[
+      {name:"Woodwind instruments",words:["FLUTE","OBOE","CLARINET","BASSOON"],difficulty:0},
+      {name:"Map features",words:["LEGEND","SCALE","COMPASS","BORDER"],difficulty:1},
+      {name:"Things that jam",words:["TRAFFIC","GUITAR","PRINTER","BERRY"],difficulty:2},
+      {name:"High ___",words:["FIVE","LIGHT","JACK","NOON"],difficulty:3}
+    ]},
+    // 17
+    {groups:[
+      {name:"Lakes",words:["TAHOE","VICTORIA","BAIKAL","GENEVA"],difficulty:0},
+      {name:"Architecture styles",words:["GOTHIC","BAROQUE","MODERN","DECO"],difficulty:1},
+      {name:"Things that leak",words:["FAUCET","SECRET","NEWS","PIPE"],difficulty:2},
+      {name:"Free ___",words:["LANCE","RANGE","DOM","FALL"],difficulty:3}
+    ]},
+  ],
+  hard: [
+    // 1
+    {groups:[
+      {name:"Anagram of LISTEN",words:["LISTEN","SILENT","ENLIST","TINSEL"],difficulty:0},
+      {name:"Currencies once used",words:["POUND","LIRA","CROWN","FRANC"],difficulty:1},
+      {name:"Also a chess piece",words:["KING","QUEEN","BISHOP","KNIGHT"],difficulty:2},
+      {name:"Contain hidden animals",words:["BEAGLE","COWBOY","DONATE","PARROT"],difficulty:3}
+    ]},
+    // 2
+    {groups:[
+      {name:"Greek letters",words:["ALPHA","DELTA","SIGMA","OMEGA"],difficulty:0},
+      {name:"Nobel Prize fields",words:["PHYSICS","PEACE","CHEMISTRY","MEDICINE"],difficulty:1},
+      {name:"Words inside words",words:["NOWHERE","TOGETHER","THERAPIST","ISLAND"],difficulty:2},
+      {name:"___ stone",words:["MILE","LIME","KEY","SAND"],difficulty:3}
+    ]},
+    // 3
+    {groups:[
+      {name:"Things that break",words:["PROMISE","RECORD","DAWN","NEWS"],difficulty:0},
+      {name:"Mythological figures",words:["ATLAS","ECHO","IRIS","PANDORA"],difficulty:1},
+      {name:"Can be a verb and noun",words:["MATCH","SPRING","WATCH","DEAL"],difficulty:2},
+      {name:"Homophones of numbers",words:["WON","ATE","FORE","TOO"],difficulty:3}
+    ]},
+    // 4
+    {groups:[
+      {name:"Types of wave",words:["TIDAL","RADIO","HEAT","SHOCK"],difficulty:0},
+      {name:"Renaissance artists",words:["RAPHAEL","DONATELLO","MICHELANGELO","BOTTICELLI"],difficulty:1},
+      {name:"Words ending in -tion",words:["STATION","NATION","MOTION","POTION"],difficulty:2},
+      {name:"Contain a color",words:["BLUEPRINT","GOLDFISH","GREENHOUSE","PINKEYE"],difficulty:3}
+    ]},
+    // 5
+    {groups:[
+      {name:"Types of rock",words:["GRANITE","MARBLE","SLATE","BASALT"],difficulty:0},
+      {name:"Stock market terms",words:["BULL","BEAR","HEDGE","SHORT"],difficulty:1},
+      {name:"Things with beds",words:["RIVER","FLOWER","TRUCK","HOSPITAL"],difficulty:2},
+      {name:"Can follow 'eye'",words:["BROW","LASH","LID","SIGHT"],difficulty:3}
+    ]},
+    // 6
+    {groups:[
+      {name:"Logical fallacies",words:["STRAWMAN","SLIPPERY","BANDWAGON","HASTY"],difficulty:0},
+      {name:"Types of government",words:["MONARCHY","REPUBLIC","DEMOCRACY","ANARCHY"],difficulty:1},
+      {name:"Things that are pitched",words:["TENT","IDEA","BALL","VOICE"],difficulty:2},
+      {name:"Double meaning words",words:["BANK","SPRING","BAT","CRANE"],difficulty:3}
+    ]},
+    // 7
+    {groups:[
+      {name:"Mathematical constants",words:["PI","EULER","PHI","OMEGA"],difficulty:0},
+      {name:"Programming languages",words:["PYTHON","RUBY","SWIFT","RUST"],difficulty:1},
+      {name:"Things that fork",words:["ROAD","RIVER","LIGHTNING","DINNER"],difficulty:2},
+      {name:"Contain a fruit",words:["APPLAUSE","GRAPEVINE","PEACHFUZZ","PLUMBER"],difficulty:3}
+    ]},
+    // 8
+    {groups:[
+      {name:"Rhetorical devices",words:["METAPHOR","IRONY","HYPERBOLE","ALLUSION"],difficulty:0},
+      {name:"Economic indicators",words:["INFLATION","RECESSION","SURPLUS","DEFICIT"],difficulty:1},
+      {name:"Things with necks",words:["BOTTLE","GUITAR","GIRAFFE","SHIRT"],difficulty:2},
+      {name:"Compound with 'sea'",words:["SHELL","SHORE","HORSE","SICK"],difficulty:3}
+    ]},
+    // 9
+    {groups:[
+      {name:"Philosophical schools",words:["STOICISM","NIHILISM","REALISM","IDEALISM"],difficulty:0},
+      {name:"Types of memory",words:["SHORT","LONG","FLASH","MUSCLE"],difficulty:1},
+      {name:"Things that are frozen",words:["LAKE","FOOD","WAGES","ACCOUNT"],difficulty:2},
+      {name:"___ point",words:["GUN","VIEW","TURNING","FOCAL"],difficulty:3}
+    ]},
+    // 10
+    {groups:[
+      {name:"Ancient wonders",words:["PYRAMID","COLOSSUS","LIGHTHOUSE","GARDENS"],difficulty:0},
+      {name:"Types of bond",words:["IONIC","COVALENT","METALLIC","HYDROGEN"],difficulty:1},
+      {name:"Things that are drawn",words:["SWORD","BATH","CURTAIN","CONCLUSION"],difficulty:2},
+      {name:"Contains a tool",words:["HAMMERHEAD","SAWDUST","DRILLBIT","NAILBED"],difficulty:3}
+    ]},
+    // 11
+    {groups:[
+      {name:"Logical operators",words:["AND","OR","NOT","XOR"],difficulty:0},
+      {name:"Tectonic plates",words:["PACIFIC","EURASIAN","AFRICAN","ANTARCTIC"],difficulty:1},
+      {name:"Things that are served",words:["TENNIS","FOOD","JUSTICE","NOTICE"],difficulty:2},
+      {name:"___ work",words:["FRAME","GROUND","CLOCK","NET"],difficulty:3}
+    ]},
+    // 12
+    {groups:[
+      {name:"Cognitive biases",words:["ANCHORING","FRAMING","HALO","SUNK"],difficulty:0},
+      {name:"Types of current",words:["ELECTRIC","OCEAN","DIRECT","ALTERNATING"],difficulty:1},
+      {name:"Things that are sharp",words:["KNIFE","WIT","CHEDDAR","TURN"],difficulty:2},
+      {name:"Under ___",words:["COVER","DOG","GROUND","WORLD"],difficulty:3}
+    ]},
+  ]
+},
+ar: {
+  easy: [
+    // 1
+    {groups:[
+      {name:"فواكه",words:["تفاح","برتقال","عنب","موز"],difficulty:0},
+      {name:"ألوان",words:["أحمر","أزرق","أخضر","أصفر"],difficulty:1},
+      {name:"حيوانات أليفة",words:["قطة","كلب","أرنب","سمكة"],difficulty:2},
+      {name:"فصول السنة",words:["شتاء","صيف","ربيع","خريف"],difficulty:3}
+    ]},
+    // 2
+    {groups:[
+      {name:"خضروات",words:["جزر","طماطم","خيار","بطاطا"],difficulty:0},
+      {name:"مشروبات ساخنة",words:["قهوة","شاي","كاكاو","يانسون"],difficulty:1},
+      {name:"أدوات مدرسية",words:["قلم","دفتر","ممحاة","مسطرة"],difficulty:2},
+      {name:"وسائل نقل",words:["سيارة","طائرة","قطار","سفينة"],difficulty:3}
+    ]},
+    // 3
+    {groups:[
+      {name:"ملابس",words:["قميص","بنطال","فستان","جاكيت"],difficulty:0},
+      {name:"أجزاء الجسم",words:["رأس","يد","قدم","عين"],difficulty:1},
+      {name:"دول عربية",words:["لبنان","مصر","تونس","الأردن"],difficulty:2},
+      {name:"مهن",words:["طبيب","مهندس","معلم","طيار"],difficulty:3}
+    ]},
+    // 4
+    {groups:[
+      {name:"طيور",words:["عصفور","نسر","بومة","ببغاء"],difficulty:0},
+      {name:"حلويات عربية",words:["كنافة","بقلاوة","قطايف","بسبوسة"],difficulty:1},
+      {name:"رياضات",words:["سباحة","ركض","ملاكمة","تنس"],difficulty:2},
+      {name:"كواكب",words:["المريخ","زحل","عطارد","المشتري"],difficulty:3}
+    ]},
+    // 5
+    {groups:[
+      {name:"أسماك",words:["سلمون","تونة","سردين","قرش"],difficulty:0},
+      {name:"أثاث المنزل",words:["كرسي","طاولة","سرير","خزانة"],difficulty:1},
+      {name:"أدوات المطبخ",words:["سكين","ملعقة","شوكة","مقلاة"],difficulty:2},
+      {name:"أشكال هندسية",words:["مربع","دائرة","مثلث","نجمة"],difficulty:3}
+    ]},
+    // 6
+    {groups:[
+      {name:"حشرات",words:["نحلة","فراشة","نملة","خنفساء"],difficulty:0},
+      {name:"معادن",words:["ذهب","فضة","حديد","نحاس"],difficulty:1},
+      {name:"أيام الأسبوع",words:["الاثنين","الثلاثاء","الأربعاء","الخميس"],difficulty:2},
+      {name:"أشهر ميلادية",words:["يناير","مارس","يوليو","ديسمبر"],difficulty:3}
+    ]},
+    // 7
+    {groups:[
+      {name:"زهور",words:["وردة","ياسمين","توليب","عباد الشمس"],difficulty:0},
+      {name:"فواكه استوائية",words:["أناناس","جوافة","مانجو","بابايا"],difficulty:1},
+      {name:"أجهزة إلكترونية",words:["هاتف","حاسوب","تلفاز","لوحي"],difficulty:2},
+      {name:"مواد دراسية",words:["رياضيات","علوم","تاريخ","جغرافيا"],difficulty:3}
+    ]},
+    // 8
+    {groups:[
+      {name:"حيوانات مفترسة",words:["أسد","نمر","ذئب","فهد"],difficulty:0},
+      {name:"أنواع الجبن",words:["شيدر","موزاريلا","فيتا","حلوم"],difficulty:1},
+      {name:"آلات موسيقية غربية",words:["بيانو","غيتار","كمان","طبل"],difficulty:2},
+      {name:"ألعاب شعبية",words:["غميضة","حبل","كرات","بلي"],difficulty:3}
+    ]},
+    // 9
+    {groups:[
+      {name:"بهارات",words:["كركم","فلفل","قرفة","زعفران"],difficulty:0},
+      {name:"مشروبات باردة",words:["عصير","ليمونادة","سموذي","ميلك شيك"],difficulty:1},
+      {name:"أدوات التنظيف",words:["مكنسة","ممسحة","صابون","إسفنجة"],difficulty:2},
+      {name:"أماكن في المدينة",words:["مدرسة","مستشفى","مسجد","حديقة"],difficulty:3}
+    ]},
+    // 10
+    {groups:[
+      {name:"حبوب",words:["قمح","أرز","شعير","ذرة"],difficulty:0},
+      {name:"حيوانات بحرية",words:["حوت","دلفين","سلحفاة","أخطبوط"],difficulty:1},
+      {name:"أدوات الرسم",words:["فرشاة","ألوان","لوحة","قلم رصاص"],difficulty:2},
+      {name:"عناصر الطبيعة",words:["ماء","هواء","تراب","نار"],difficulty:3}
+    ]},
+    // 11
+    {groups:[
+      {name:"مكسرات",words:["لوز","جوز","فستق","كاجو"],difficulty:0},
+      {name:"أنواع خبز",words:["صمون","خبز عربي","توست","باغيت"],difficulty:1},
+      {name:"أدوات البناء",words:["مطرقة","منشار","مسمار","مفك"],difficulty:2},
+      {name:"ألعاب رياضية بالكرة",words:["كرة قدم","كرة سلة","كرة طائرة","كرة يد"],difficulty:3}
+    ]},
+    // 12
+    {groups:[
+      {name:"أشجار",words:["نخلة","زيتون","سنديان","صنوبر"],difficulty:0},
+      {name:"وجبات عربية",words:["حمص","تبولة","فتوش","متبل"],difficulty:1},
+      {name:"مجوهرات",words:["خاتم","سوار","قلادة","أقراط"],difficulty:2},
+      {name:"حواس الإنسان",words:["بصر","سمع","شم","لمس"],difficulty:3}
+    ]},
+  ],
+  medium: [
+    // 1
+    {groups:[
+      {name:"عواصم عربية",words:["القاهرة","بيروت","بغداد","الرباط"],difficulty:0},
+      {name:"آلات موسيقية عربية",words:["عود","ناي","دف","قانون"],difficulty:1},
+      {name:"مشاعر",words:["فرح","حزن","غضب","دهشة"],difficulty:2},
+      {name:"أشياء في السماء",words:["نجمة","قمر","سحابة","قوس قزح"],difficulty:3}
+    ]},
+    // 2
+    {groups:[
+      {name:"أحجار كريمة",words:["ياقوت","زمرد","ألماس","فيروز"],difficulty:0},
+      {name:"أطباق شعبية",words:["منسف","كشري","شاورما","فلافل"],difficulty:1},
+      {name:"أنواع أقمشة",words:["حرير","قطن","صوف","كتان"],difficulty:2},
+      {name:"صفات للطقس",words:["حار","بارد","ماطر","غائم"],difficulty:3}
+    ]},
+    // 3
+    {groups:[
+      {name:"معالم عربية",words:["الأهرام","البتراء","الأقصى","قلعة صلاح الدين"],difficulty:0},
+      {name:"أنواع الخط العربي",words:["نسخ","رقعة","ثلث","ديواني"],difficulty:1},
+      {name:"صفات إيجابية",words:["كريم","شجاع","صبور","أمين"],difficulty:2},
+      {name:"كلمات تعني كبير",words:["ضخم","عظيم","هائل","جسيم"],difficulty:3}
+    ]},
+    // 4
+    {groups:[
+      {name:"بحار ومحيطات",words:["الأحمر","المتوسط","الهادئ","الأطلسي"],difficulty:0},
+      {name:"أنواع السيارات",words:["سيدان","دفع رباعي","رياضية","شاحنة"],difficulty:1},
+      {name:"أنواع الشعر العربي",words:["قصيدة","موشح","رباعية","حر"],difficulty:2},
+      {name:"كلمات تنتهي بألف مقصورة",words:["هدى","مصطفى","سلوى","منى"],difficulty:3}
+    ]},
+    // 5
+    {groups:[
+      {name:"صحاري عربية",words:["الربع الخالي","الصحراء الكبرى","النفود","سيناء"],difficulty:0},
+      {name:"حضارات قديمة",words:["فرعونية","بابلية","فينيقية","رومانية"],difficulty:1},
+      {name:"أسماء مركبة",words:["عبدالله","عبدالرحمن","نور الدين","صلاح الدين"],difficulty:2},
+      {name:"كلمات من أصل تركي",words:["بقلاوة","دولمة","كباب","أوضة"],difficulty:3}
+    ]},
+    // 6
+    {groups:[
+      {name:"أنهار عربية",words:["النيل","دجلة","الفرات","الأردن"],difficulty:0},
+      {name:"فنون تشكيلية",words:["رسم","نحت","خزف","فسيفساء"],difficulty:1},
+      {name:"أنواع المياه",words:["عذبة","مالحة","جوفية","معدنية"],difficulty:2},
+      {name:"مرادفات الجمال",words:["حسن","بهاء","روعة","جمال"],difficulty:3}
+    ]},
+    // 7
+    {groups:[
+      {name:"جبال عربية",words:["لبنان","سيناء","أطلس","حجاز"],difficulty:0},
+      {name:"أنواع المعمار",words:["قبة","مئذنة","قنطرة","محراب"],difficulty:1},
+      {name:"كلمات فارسية الأصل",words:["بستان","جوهر","دكان","ديوان"],difficulty:2},
+      {name:"مرادفات الشجاعة",words:["جرأة","بسالة","إقدام","بطولة"],difficulty:3}
+    ]},
+    // 8
+    {groups:[
+      {name:"أطباق لبنانية",words:["تبولة","كبة","فتوش","مناقيش"],difficulty:0},
+      {name:"أطباق مصرية",words:["كشري","ملوخية","فول","طعمية"],difficulty:1},
+      {name:"أطباق خليجية",words:["مجبوس","هريس","لقيمات","ثريد"],difficulty:2},
+      {name:"أطباق مغربية",words:["طاجين","كسكسي","بسطيلة","حريرة"],difficulty:3}
+    ]},
+  ],
+  hard: [
+    // 1
+    {groups:[
+      {name:"شعراء عرب",words:["المتنبي","نزار قباني","درويش","أحمد شوقي"],difficulty:0},
+      {name:"مقامات موسيقية",words:["بيات","صبا","حجاز","نهاوند"],difficulty:1},
+      {name:"كلمات لها أكثر من معنى",words:["عين","قلب","ورد","حب"],difficulty:2},
+      {name:"أسماء للأسد",words:["ليث","ضرغام","غضنفر","حيدر"],difficulty:3}
+    ]},
+    // 2
+    {groups:[
+      {name:"علماء عرب",words:["ابن سينا","الخوارزمي","ابن خلدون","الرازي"],difficulty:0},
+      {name:"أبراج فلكية",words:["الحمل","الأسد","العقرب","الحوت"],difficulty:1},
+      {name:"مرادفات السيف",words:["حسام","صارم","مهند","بتار"],difficulty:2},
+      {name:"أسماء للريح",words:["صبا","شمال","دبور","سموم"],difficulty:3}
+    ]},
+    // 3
+    {groups:[
+      {name:"خلفاء راشدون",words:["أبو بكر","عمر","عثمان","علي"],difficulty:0},
+      {name:"أوزان شعرية",words:["الطويل","البسيط","الكامل","الوافر"],difficulty:1},
+      {name:"كلمات تركية في العامية",words:["بقشيش","طابور","أوضة","دوغري"],difficulty:2},
+      {name:"أسماء للقمر",words:["بدر","هلال","سهيل","قمر"],difficulty:3}
+    ]},
+    // 4
+    {groups:[
+      {name:"مؤلفات عربية شهيرة",words:["المقدمة","الأغاني","ألف ليلة","كليلة ودمنة"],difficulty:0},
+      {name:"علوم عربية قديمة",words:["كيمياء","جبر","فلك","طب"],difficulty:1},
+      {name:"كلمات عربية في الإنجليزية",words:["algebra","algorithm","zero","coffee"],difficulty:2},
+      {name:"أسماء مكة المكرمة",words:["بكة","البلد الأمين","أم القرى","المسجد الحرام"],difficulty:3}
+    ]},
+    // 5
+    {groups:[
+      {name:"رحالة عرب",words:["ابن بطوطة","ابن جبير","المسعودي","الإدريسي"],difficulty:0},
+      {name:"أنواع النثر",words:["مقالة","خطبة","رسالة","مقامة"],difficulty:1},
+      {name:"مرادفات الماء",words:["غدير","نهر","جدول","سيل"],difficulty:2},
+      {name:"أسماء المدينة المنورة",words:["يثرب","طيبة","المنورة","دار الهجرة"],difficulty:3}
+    ]},
+    // 6
+    {groups:[
+      {name:"فلاسفة عرب",words:["الكندي","الفارابي","ابن رشد","ابن عربي"],difficulty:0},
+      {name:"أنواع البلاغة",words:["تشبيه","استعارة","كناية","مجاز"],difficulty:1},
+      {name:"أسماء للشمس",words:["ذكاء","شمس","ضحى","بارقة"],difficulty:2},
+      {name:"كلمات تعني السعادة",words:["غبطة","سرور","بهجة","حبور"],difficulty:3}
+    ]},
+    // 7
+    {groups:[
+      {name:"معارك إسلامية",words:["بدر","أحد","حطين","اليرموك"],difficulty:0},
+      {name:"أنواع الإعراب",words:["رفع","نصب","جر","جزم"],difficulty:1},
+      {name:"أسماء للسيف عربية",words:["ذو الفقار","المهند","الصمصام","البتار"],difficulty:2},
+      {name:"مرادفات الليل",words:["دجى","سمر","ظلام","غسق"],difficulty:3}
+    ]},
+  ]
+}
+};
+
+// ============================================================
+
+// ===================== SEEDED RANDOM GENERATOR =====================
+// Generates "unique" puzzles by combining and remixing from the database
+function seededRandom(seed){
+  let s=seed;
+  return()=>{s=(s*16807+0)%2147483647;return(s-1)/2147483646};
+}
+
+function generatePuzzle(lang,diff,seed){
+  const pool=DB[lang][diff]||DB[lang].easy;
+  const rng=seededRandom(seed);
+  // Pick a random puzzle from pool using the seed
+  const idx=Math.floor(rng()*pool.length);
+  return JSON.parse(JSON.stringify(pool[idx]));
+}
+
+// ===================== GAME STATE =====================
+let lang='en',theme='light',diff='easy';
+let puzzle,words,selected=new Set(),solved=[],mistakes=0,maxLives=4;
+let gameOver=false,prevGuesses=[];
+let stats={streak:0,solved:0,num:0};
+let puzzleSeed=Date.now();
+
+// ===================== I18N =====================
+const L={
+  en:{sub:"Find the hidden connections",streak:"Streak",solved:"Solved",puzzle:"Puzzle",
+    lives:"Lives",shuffle:"Shuffle",deselect:"Deselect",submit:"Submit",
+    newPuzzle:"✦ New Puzzle",share:"📋 Share",next:"✦ Next",
+    oneAway:"One away!",tried:"Already tried!",copied:"Copied!",
+    win:"Brilliant!",lose:"Nice try!",
+    easy:"Easy",medium:"Medium",hard:"Hard",
+    tTitle:"How to Play",
+    t1:"Select <strong>4 words</strong> that share a hidden connection",
+    t2:"Tap <strong>Submit</strong> to check your guess",
+    t3:"You get <strong>4 lives</strong> — each wrong guess costs one",
+    t4:"Categories go from easy to tricky:",
+    tEasy:"Easiest",tMed:"Medium",tHard:"Hard",tTrick:"Trickiest",
+    t5:"Tap <strong>✦ New Puzzle</strong> for a fresh challenge anytime!",
+    tStart:"Let's Play!",
+    noMistakes:"Flawless! ✨",mistakesText:"Mistakes"},
+  ar:{sub:"اكتشف الروابط الخفية",streak:"سلسلة",solved:"محلولة",puzzle:"لغز",
+    lives:"المحاولات",shuffle:"خلط",deselect:"إلغاء",submit:"تأكيد",
+    newPuzzle:"✦ لغز جديد",share:"📋 مشاركة",next:"✦ التالي",
+    oneAway:"!واحدة تنقصك",tried:"!حاولت هذا من قبل",copied:"!تم النسخ",
+    win:"!رائع",lose:"!حاول مرة أخرى",
+    easy:"سهل",medium:"متوسط",hard:"صعب",
+    tTitle:"كيف تلعب؟",
+    t1:"اختر <strong>٤ كلمات</strong> تجمعها صلة مشتركة",
+    t2:"اضغط <strong>تأكيد</strong> للتحقق من إجابتك",
+    t3:"لديك <strong>٤ محاولات</strong> — كل إجابة خاطئة تكلفك واحدة",
+    t4:"المجموعات مرتبة من الأسهل للأصعب:",
+    tEasy:"الأسهل",tMed:"متوسط",tHard:"صعب",tTrick:"الأصعب",
+    t5:"اضغط <strong>✦ لغز جديد</strong> في أي وقت للحصول على تحدي جديد!",
+    tStart:"!هيا نلعب",
+    noMistakes:"بلا أخطاء! ✨",mistakesText:"أخطاء"}
+};
+const t=k=>L[lang][k]||k;
+
+// ===================== DOM =====================
+const $=id=>document.getElementById(id);
+const gridEl=$('grid'),svArea=$('svArea'),subBtn=$('subBtn'),
+  shufBtn=$('shufBtn'),deselBtn=$('deselBtn'),newBtn=$('newBtn'),
+  resOv=$('resOv'),tutEl=$('tut'),toastEl=$('toast'),confEl=$('conf');
+
+// ===================== TOAST =====================
+let toastTimer;
+function toast(msg,dur=1500){
+  clearTimeout(toastTimer);
+  toastEl.textContent=msg;toastEl.classList.add('on');
+  toastTimer=setTimeout(()=>toastEl.classList.remove('on'),dur);
+}
+
+// ===================== CONFETTI =====================
+function confetti(){
+  confEl.innerHTML='';
+  const cols=['#f59e0b','#22c55e','#3b82f6','#8b5cf6','#ef4444','#ec4899'];
+  for(let i=0;i<50;i++){
+    const p=document.createElement('div');p.className='conf-p';
+    p.style.left=Math.random()*100+'%';
+    p.style.background=cols[~~(Math.random()*cols.length)];
+    p.style.width=(6+Math.random()*8)+'px';
+    p.style.height=(6+Math.random()*8)+'px';
+    p.style.borderRadius=Math.random()>.5?'50%':'2px';
+    p.style.animationDuration=(2+Math.random()*2)+'s';
+    p.style.animationDelay=(Math.random()*.8)+'s';
+    confEl.appendChild(p);
+  }
+  setTimeout(()=>confEl.innerHTML='',5000);
+}
+
+// ===================== TUTORIAL =====================
+function showTutorial(){
+  tutEl.innerHTML=`<div class="tut-box">
+    <h2>${t('tTitle')}</h2>
+    <div class="tut-step"><div class="tut-num">1</div><div class="tut-txt">${t('t1')}</div></div>
+    <div class="tut-step"><div class="tut-num">2</div><div class="tut-txt">${t('t2')}</div></div>
+    <div class="tut-step"><div class="tut-num">3</div><div class="tut-txt">${t('t3')}</div></div>
+    <div class="tut-step"><div class="tut-num">4</div><div class="tut-txt">${t('t4')}</div></div>
+    <div class="tut-colors">
+      <div class="tut-c c0"></div><span style="font-size:.75rem;color:var(--text2)">${t('tEasy')}</span>
+      <div class="tut-c c1" style="margin-left:8px"></div><span style="font-size:.75rem;color:var(--text2)">${t('tMed')}</span>
+      <div class="tut-c c2" style="margin-left:8px"></div><span style="font-size:.75rem;color:var(--text2)">${t('tHard')}</span>
+      <div class="tut-c c3" style="margin-left:8px"></div><span style="font-size:.75rem;color:var(--text2)">${t('tTrick')}</span>
+    </div>
+    <div class="tut-step"><div class="tut-num">5</div><div class="tut-txt">${t('t5')}</div></div>
+    <button class="tut-close" id="tutClose">${t('tStart')}</button>
+  </div>`;
+  tutEl.classList.add('on');
+  $('tutClose').onclick=()=>tutEl.classList.remove('on');
+}
+
+// ===================== RENDER =====================
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=~~(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+
+function updateUI(){
+  const h=document.documentElement;
+  h.lang=lang;h.dir=lang==='ar'?'rtl':'ltr';
+  if(theme==='dark')document.body.setAttribute('data-theme','dark');
+  else document.body.removeAttribute('data-theme');
+
+  $('sub').textContent=t('sub');
+  $('lStreak').textContent=t('streak');$('lSolved').textContent=t('solved');$('lPuzzle').textContent=t('puzzle');
+  $('livesLbl').textContent=t('lives');
+  shufBtn.textContent=t('shuffle');deselBtn.textContent=t('deselect');subBtn.textContent=t('submit');
+  newBtn.textContent=t('newPuzzle');
+
+  $('sStreak').textContent=stats.streak;$('sSolved').textContent=stats.solved;
+  $('sPuzzle').textContent='#'+stats.num;
+  $('langBtn').textContent=lang==='en'?'ع':'EN';
+
+  // Difficulty
+  const dr=$('diffRow');dr.innerHTML='';
+  ['easy','medium','hard'].forEach(d=>{
+    const b=document.createElement('button');
+    b.className='diff-b'+(d===diff?' on':'');
+    b.textContent=t(d);
+    b.onclick=()=>{diff=d;updateUI()};
+    dr.appendChild(b);
+  });
+
+  // Lives
+  const ld=$('lDots');ld.innerHTML='';
+  for(let i=0;i<maxLives;i++){
+    const d=document.createElement('span');
+    d.className='life'+(i<mistakes?' gone':'');
+    ld.appendChild(d);
+  }
+}
+
+function renderGrid(){
+  gridEl.innerHTML='';
+  words.filter(w=>!solved.includes(w.group)).forEach(w=>{
+    const t=document.createElement('div');
+    t.className='tile'+(selected.has(w.word)?' sel':'');
+    t.textContent=w.word;
+    t.onclick=()=>toggle(w.word);
+    gridEl.appendChild(t);
+  });
+  subBtn.disabled=selected.size!==4;
+}
+
+function renderSolved(){
+  svArea.innerHTML='';
+  solved.forEach(gn=>{
+    const g=puzzle.groups.find(x=>x.name===gn);
+    if(!g)return;
+    const c=document.createElement('div');
+    c.className=`sv-card d${g.difficulty}`;
+    const sep=lang==='ar'?' ، ':' ,  ';
+    c.innerHTML=`<div class="sv-name">${g.name}</div><div class="sv-words">${g.words.join(sep)}</div>`;
+    svArea.appendChild(c);
+  });
+}
+
+// ===================== GAME LOGIC =====================
+function toggle(w){
+  if(gameOver)return;
+  if(selected.has(w))selected.delete(w);
+  else if(selected.size<4)selected.add(w);
+  renderGrid();
+}
+
+function submit(){
+  if(selected.size!==4||gameOver)return;
+  const sel=[...selected],key=sel.sort().join('|');
+  if(prevGuesses.includes(key)){toast(t('tried'));return}
+  prevGuesses.push(key);
+
+  const grp={};
+  sel.forEach(w=>{const o=words.find(x=>x.word===w);grp[o.group]=(grp[o.group]||0)+1});
+  const entries=Object.entries(grp);
+
+  if(entries.length===1&&entries[0][1]===4){
+    // Correct!
+    const gn=entries[0][0];
+    solved.push(gn);
+
+    document.querySelectorAll('.tile.sel').forEach(t=>{t.classList.add('flash')});
+    setTimeout(()=>{
+      selected.clear();renderSolved();renderGrid();
+      if(solved.length===4){
+        gameOver=true;stats.streak++;stats.solved++;
+        confetti();setTimeout(()=>showResult(true),500);
+      }
+    },350);
+  }else{
+    // Wrong
+    const mx=Math.max(...entries.map(e=>e[1]));
+    if(mx===3){
+      toast(t('oneAway'));
+      document.querySelectorAll('.tile.sel').forEach(t=>{t.classList.add('one');setTimeout(()=>t.classList.remove('one'),600)});
+    }else{
+      document.querySelectorAll('.tile.sel').forEach(t=>{t.classList.add('shake');setTimeout(()=>t.classList.remove('shake'),500)});
+    }
+    mistakes++;updateUI();
+    if(mistakes>=maxLives){
+      gameOver=true;stats.streak=0;
+      setTimeout(()=>{
+        puzzle.groups.forEach(g=>{if(!solved.includes(g.name))solved.push(g.name)});
+        renderSolved();gridEl.innerHTML='';
+        setTimeout(()=>showResult(false),400);
+      },600);
+    }
+    selected.clear();renderGrid();
+  }
+}
+
+function showResult(won){
+  $('rEmoji').textContent=won?'🎉':'💪';
+  $('rTitle').textContent=won?t('win'):t('lose');
+
+  const em={0:'🟨',1:'🟩',2:'🟦',3:'🟪'};
+  const ordered=[...puzzle.groups].sort((a,b)=>solved.indexOf(a.name)-solved.indexOf(b.name));
+  let g=`LinkWords #${stats.num}\n`;
+  ordered.forEach(x=>g+=em[x.difficulty].repeat(4)+'\n');
+  g+=mistakes===0?t('noMistakes'):`${t('mistakesText')}: ${mistakes}/4`;
+  $('rGrid').textContent=g;
+  $('rSub').textContent=won?`🔥 ${t('streak')}: ${stats.streak}`:'';
+  resOv.classList.add('on');
+}
+
+function newPuzzle(){
+  puzzleSeed=Date.now()+Math.floor(Math.random()*100000);
+  stats.num++;
+  puzzle=generatePuzzle(lang,diff,puzzleSeed);
+  words=[];
+  puzzle.groups.forEach(g=>g.words.forEach(w=>words.push({word:w,group:g.name,difficulty:g.difficulty})));
+  words=shuffle(words);
+  selected.clear();solved=[];mistakes=0;gameOver=false;prevGuesses=[];
+  resOv.classList.remove('on');
+  svArea.innerHTML='';
+  updateUI();renderGrid();
+}
+
+// ===================== EVENTS =====================
+subBtn.onclick=submit;
+shufBtn.onclick=()=>{
+  const rem=words.filter(w=>!solved.includes(w.group));
+  const sh=shuffle(rem);let i=0;
+  words=words.map(w=>solved.includes(w.group)?w:sh[i++]);
+  renderGrid();
+};
+deselBtn.onclick=()=>{selected.clear();renderGrid()};
+newBtn.onclick=newPuzzle;
+$('againBtn').onclick=newPuzzle;
+$('shareBtn').onclick=()=>{
+  const txt=$('rGrid').textContent;
+  if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>toast(t('copied')));
+};
+$('langBtn').onclick=()=>{lang=lang==='en'?'ar':'en';newPuzzle()};
+$('themeBtn').onclick=()=>{theme=theme==='light'?'dark':'light';updateUI()};
+$('helpBtn').onclick=showTutorial;
+
+// ===================== INIT =====================
+// Show tutorial on first visit
+const firstVisit=!localStorage.getItem||true;
+updateUI();
+newPuzzle();
+setTimeout(showTutorial,400);
+
+})();
+</script>
+</body>
+</html>
